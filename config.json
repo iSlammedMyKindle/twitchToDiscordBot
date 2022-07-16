@@ -1,0 +1,10 @@
+{
+    "T2S_CLIENT_ID": "",
+    "T2S_SECRET": "",
+    "T2S_USER": "",
+    "T2S_CHANNELS": [""],
+    "T2S_SCOPE":"chat:read chat:edit",
+    "T2S_REDIRECT_URI": "http://localhost:3000",
+    "T2S_DISCORD_CHANNEL": "",
+    "T2S_DISCORD_TOKEN":""
+}
