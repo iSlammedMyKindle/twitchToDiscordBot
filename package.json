@@ -1,7 +1,25 @@
 {
+  "name": "twitctodiscordbot",
+  "description": "Read messages / channels send messages read message history",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "discord.js": "^13.8.1",
     "open": "^8.4.0",
     "tmi.js": "^1.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.5",
+    "@types/tmi.js": "^1.8.1",
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
+    "eslint": "^8.20.0",
+    "typescript": "^4.7.4"
   }
 }

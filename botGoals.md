@@ -11,5 +11,5 @@
 * create a system for devs that stores the refresh token in a temporary spot.
 * create a channel template that reflects the limitations of twitch
     * setup a guideline for cross-custom emoji between discord and twitch
-* use jsDoc to document the function
+* use jsDoc to document the functions
 * see what happens if someone types a [twitch] command from discord into twitch
