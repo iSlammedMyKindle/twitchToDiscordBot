@@ -9,6 +9,9 @@ const configFile = require('./config.json'),
 
 var twitchClient; //Defined after retrieving the authentication token.
 
+//If an error happens either on twitch or discord, print the thing
+const genericPromiseError =  error=>console.error('Snap, I hit a snag... >.<', error);
+
 //Twitch init
 /////////////
 
@@ -33,12 +36,10 @@ authenticateTwitch({
     
     twitchClient.connect().then(()=>console.log("Twitch bot is live!", configFile.T2S_USER));
     twitchClient.on('message', (channel, userState, msg, self)=>{
-        if(msg == '!hi') twitchClient.say(channel, 'Hello world!!');
-
         //Send a message to twitch
         //Something fascinating is, if a message is sent by the bot, self will be true. If I use the same username though when I chat, it's false.
-        if(!self) targetDiscordChannel.send(`[t][${userState["display-name"]}] ${msg}`);
-    });  
+        if(!self) targetDiscordChannel.send(`[t][${userState["display-name"]}] ${msg}`).then(undefined, genericPromiseError);
+    })  
 })
 
 //discord.js init
@@ -46,10 +47,47 @@ authenticateTwitch({
 const discordClient = new Client({intents: ['GUILDS', 'GUILD_MESSAGES']});
 var targetDiscordChannel;
 
+function chunkMessage(message = "", contSymbol = "[...]"){
+    const res = [""];
+    var resIndex = 0;
+
+    for(let i = 0; i < message.length; i++){
+
+        if(res[resIndex].length == 500){
+            resIndex++;
+            res[resIndex] = "";
+        }
+
+        //If our current chunk comes after the first, and the current string is blank, add the continue symbol
+        if(resIndex && !res[resIndex]) res[resIndex] += contSymbol;
+
+        res[resIndex] += message[i];
+    }
+
+    return res;
+}
+
 discordClient.on('messageCreate', m=>{
     //Ping it back to twitch as long as it isn't a bot
     if(!m.author.bot && m.channel.id == targetDiscordChannel.id){
-        twitchClient.say(configFile.T2S_CHANNELS[0], `[d][${m.author.tag}] ${m.content}`);
+        //Break the message down if it is over 500 characters to send things over from discord
+        const discordHeader = `[d][${m.author.tag}] `;
+        if(m.content.length > (500 - discordHeader.length)) {
+            const messagesToSend = chunkMessage(discordHeader + m.content);
+            let currIndex = 0;
+            const recursiveSend = ()=>{
+                if(currIndex < messagesToSend.length)
+                twitchClient.say(configFile.T2S_CHANNELS[0], messagesToSend[currIndex]).then(()=>{
+                    currIndex++;
+                    // setTimeout(recursiveSend, 500);
+                    recursiveSend();
+                });
+            }
+
+            recursiveSend();
+        }
+
+        else twitchClient.say(configFile.T2S_CHANNELS[0], `${discordHeader}${m.content}`).then(undefined, genericPromiseError);
     }
 });
 
