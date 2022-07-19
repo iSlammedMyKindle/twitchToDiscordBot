@@ -6,5 +6,6 @@
     "T2S_SCOPE":"chat:read chat:edit",
     "T2S_REDIRECT_URI": "http://localhost:3000",
     "T2S_DISCORD_CHANNEL": "",
-    "T2S_DISCORD_TOKEN":""
+    "T2S_DISCORD_TOKEN":"",
+    "T2S_DEV_SAVE_TOKEN":false
 }
