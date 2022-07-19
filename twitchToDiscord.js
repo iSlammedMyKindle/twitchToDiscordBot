@@ -10,7 +10,10 @@ const configFile = require('./config.json'),
 
 var twitchClient; //Defined after retrieving the authentication token.
 
-//If an error happens either on twitch or discord, print the thing
+/**
+ * If an error happens either on twitch or discord, print the thing
+ * @param {*} error 
+ */
 const genericPromiseError =  error=>console.error('Snap, I hit a snag... >.<', error);
 
 //Twitch init
@@ -68,7 +71,7 @@ var targetDiscordChannel;
 discordClient.on('messageCreate', m=>{
     //Ping it back to twitch as long as it isn't a bot
     if(!m.author.bot && m.channel.id == targetDiscordChannel.id){
-        //Break the message down if it is over 500 characters to send things over from discord
+        //tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
         const discordHeader = `[d][${m.author.tag}] `;
         twitchClient.say(configFile.T2S_CHANNELS[0], `${discordHeader}${m.content}`).then(undefined, genericPromiseError);
     }
