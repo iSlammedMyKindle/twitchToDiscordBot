@@ -24,7 +24,7 @@ const genericPromiseError =  error=>console.error('Snap, I hit a snag... >.<', e
  * @param {string} {access_token} a javascript object containing at minimum, a twitch access token 
  */
 function loginToTwitch({access_token}, skipTokenSave){
-
+    //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
     //If we have the save token flag enabled, save this to "devTwitchToken"
     if(!skipTokenSave && configFile.T2S_DEV_SAVE_TOKEN)
         fs.writeFile('./devTwitchToken', access_token, undefined, error=>{
@@ -45,7 +45,7 @@ function loginToTwitch({access_token}, skipTokenSave){
         //Send a message to twitch
         //Something fascinating is, if a message is sent by the bot, self will be true. If I use the same username though when I chat, it's false.
         if(!self) targetDiscordChannel.send(`[t][${userState["display-name"]}] ${msg}`).then(undefined, genericPromiseError);
-    })  
+    });
 }
 
 //Login to twitch
@@ -72,8 +72,32 @@ discordClient.on('messageCreate', m=>{
     //Ping it back to twitch as long as it isn't a bot
     if(!m.author.bot && m.channel.id == targetDiscordChannel.id){
         //tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
-        const discordHeader = `[d][${m.author.tag}] `;
-        twitchClient.say(configFile.T2S_CHANNELS[0], `${discordHeader}${m.content}`).then(undefined, genericPromiseError);
+        const discordHeader = `[d][${m.author.tag}] `,
+            foundIds = {};
+
+        let finalMessage = m.content;
+
+            //Grab the contents of the message, convert discord mentions into usernames for twitch to see
+            for(const mention of m.content.matchAll(/\<@[0-9]{1,}\>/g)){
+                const discordId = /[0-9]{1,}/.exec([mention[0]])[0];
+                if(!foundIds[discordId]){
+                    foundIds[discordId] = true;
+                    finalMessage = finalMessage.replaceAll(mention[0], '@[m]'+m.mentions.members.get(discordId).user.tag);
+                }
+            }
+
+        //Also need to filter out custom emoji from discord; would be better to display the custom emoji name
+        for(const customEmoji of m.content.matchAll(/\<\:[A-Za-z]{1,}:[0-9]{1,}\>/g)){
+            let emojiNameAndId = /[A-Za-z]{1,}:[0-9]{1,}/.exec(customEmoji[0])[0].split(':');
+
+            if(!foundIds[emojiNameAndId[1]]){
+                //Replace the ID of the custom emoji with just it's name
+                foundIds[emojiNameAndId[1]] = true;
+                finalMessage = finalMessage.replaceAll(customEmoji[0], '[e]'+emojiNameAndId[0]);
+            }
+        }
+
+        twitchClient.say(configFile.T2S_CHANNELS[0], `${discordHeader}${finalMessage}`).then(undefined, genericPromiseError);
     }
 });
 
