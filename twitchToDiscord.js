@@ -6,7 +6,8 @@ const configFile = require('./config.json'),
     tmijs = require('tmi.js'),
     { authenticateTwitch } = require('./oauth'),
     { Client } = require('discord.js'),
-    fs = require('fs');
+    fs = require('fs'),
+    { nodeInterface } = require('./linkedList');
 
 var twitchClient; //Defined after retrieving the authentication token.
 
@@ -15,6 +16,12 @@ var twitchClient; //Defined after retrieving the authentication token.
  * @param {*} error 
  */
 const genericPromiseError =  error=>console.error('Snap, I hit a snag... >.<', error);
+
+//This object stores discord and twitch messages using thier IDs. A singular object containing the respective discord & twitch message will be present here, but two IDs can query this one object.
+const messageCollection = {};
+
+//This is a linked list that will contain the last 100 messages.
+const messageLinkdListInterface = new nodeInterface();
 
 //Twitch init
 /////////////
