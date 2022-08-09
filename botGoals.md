@@ -1,4 +1,4 @@
-# Goals for this bot - aka .**MISSIONS!**
+# Goals for this bot - aka **MISSIONS!**
 
 ## Discord side of things
 

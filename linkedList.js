@@ -45,9 +45,10 @@ class linkedListNode {
 class nodeInterface {
     //The node that was last made using `addNode`; should always be the last node in the list.
     lastCreatedNode;
+    beginningNode;
 
     constructor(data){
-        if(data) this.lastCreatedNode = new linkedListNode(data);
+        if(data) this.beginningNode = this.lastCreatedNode = new linkedListNode(data);
     }
 
     /**
@@ -71,12 +72,18 @@ class nodeInterface {
      * Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
      */
       rebindForDelete(targetNode){
-        targetNode.next.prev = targetNode.prev;
-        targetNode.prev.next = targetNode.next;
+        if(targetNode.next?.prev)
+            targetNode.next.prev = targetNode.prev;
+
+        if(targetNode.prev?.next)
+            targetNode.prev.next = targetNode.next;
 
         //If this is the last linked node in the list, grab it's previous node instead to make that the "lastCreatedNode" (credit - bevelled from twitch)
         if(this.lastCreatedNode == targetNode)
             this.lastCreatedNode = targetNode.prev;
+        
+        if(this.beginningNode == targetNode)
+            this.beginningNode = targetNode.next;
 
     }
 
