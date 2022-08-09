@@ -7,9 +7,12 @@ const configFile = require('./config.json'),
     { authenticateTwitch } = require('./oauth'),
     { Client } = require('discord.js'),
     fs = require('fs'),
-    { nodeInterface } = require('./linkedList');
+    { nodeInterface } = require('./linkedList'),
+    {conjoinedMsg, twitchMsg} = require('./messageObjects');
+    MAX_MSG_CACHE = 100; //Not a hard limit, it's more of a practical one
 
-var twitchClient; //Defined after retrieving the authentication token.
+var twitchClient, //Defined after retrieving the authentication token.
+    currMsgCount = 0;
 
 /**
  * If an error happens either on twitch or discord, print the thing
@@ -17,11 +20,29 @@ var twitchClient; //Defined after retrieving the authentication token.
  */
 const genericPromiseError =  error=>console.error('Snap, I hit a snag... >.<', error);
 
-//This object stores discord and twitch messages using thier IDs. A singular object containing the respective discord & twitch message will be present here, but two IDs can query this one object.
-const messageCollection = {};
+//The jank method of finding twitch messages. If we get a message from discord, we send the message as the key here, then we use that to determine if the message is ours and then link it back to discord.
+const twitchMessageSearchCache = {},
 
-//This is a linked list that will contain the last 100 messages.
-const messageLinkdListInterface = new nodeInterface();
+    //This is a linked list that will contain the last 100 messages.
+    messageLinkdListInterface = new nodeInterface(),
+
+    //This map will store discord & twitch messages, with the keys being the message objects. If we need to make edits, then we just go here to determine if the message is something we're storing already
+    discordTwitchCacheMap = new Map();
+
+function manageMsgCache(specificNode){
+    if(!specificNode && currMsgCount < MAX_MSG_CACHE) return currMsgCount++;
+
+    //Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
+    if(!specificNode)
+        specificNode = messageLinkdListInterface.beginningNode; //Garbage collection takes care of this, so need to run delete
+        
+    messageLinkdListInterface.rebindForDelete(specificNode);
+
+    discordTwitchCacheMap.delete(specificNode.data.twitchArray[0]);
+    discordTwitchCacheMap.delete(specificNode.data.discord);
+
+    return specificNode;
+}
 
 //Twitch init
 /////////////
@@ -51,7 +72,35 @@ function loginToTwitch({access_token}, skipTokenSave){
     twitchClient.on('message', (channel, userState, msg, self)=>{
         //Send a message to twitch
         //Something fascinating is, if a message is sent by the bot, self will be true. If I use the same username though when I chat, it's false.
-        if(!self) targetDiscordChannel.send(`[t][${userState["display-name"]}] ${msg}`).then(undefined, genericPromiseError);
+        if(!self){
+            targetDiscordChannel.send(`[t][${userState["display-name"]}] ${msg}`).then(discordMessage=>{
+               //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
+   
+               //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
+               const twitchMessage = new twitchMsg(msg, userState, channel);
+               const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+   
+               discordTwitchCacheMap.set(twitchMessage, listNode);
+               discordTwitchCacheMap.set(discordMessage, listNode);
+   
+               //Count upwards and delete the oldest message if need be
+               manageMsgCache();
+           }, genericPromiseError);
+        }
+
+        //If we reach this and we're looking for this very message, then we have a chance to re-bind the message that we tried to send via discord
+        else{
+            if(twitchMessageSearchCache[msg]){
+                let existingNode = twitchMessageSearchCache[msg],
+                    twitchMessage = new twitchMsg(msg, userState, channel);
+
+                existingNode.data.twitchArray.push(twitchMessage);
+                discordTwitchCacheMap.set(twitchMessage, existingNode);
+
+                //Remove this from the cache since we found it
+                delete twitchMessageSearchCache[msg];
+            }
+        }
     });
 }
 
@@ -104,8 +153,31 @@ discordClient.on('messageCreate', m=>{
             }
         }
 
-        twitchClient.say(configFile.T2S_CHANNELS[0], `${discordHeader}${finalMessage}`).then(undefined, genericPromiseError);
+        const messageToSend = `${discordHeader}${finalMessage}`;
+
+
+        //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
+        const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(m));
+        twitchMessageSearchCache[messageToSend] = listNode;
+        discordTwitchCacheMap.set(m, listNode);
+
+        twitchClient.say(configFile.T2S_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
+
+        //Count upwards and delete the oldest message if need be
+        manageMsgCache();
     }
+});
+
+discordClient.on('messageDelete', m=>{
+    const messageFromCache = discordTwitchCacheMap.get(m);
+    if(!messageFromCache) return;
+
+    //Assuming we found a message we deleted on discord, delete it on twitch too
+    for(const i of messageFromCache.data.twitchArray)
+        twitchClient.deletemessage(i.channel, i.userState.id).then(undefined, genericPromiseError);
+
+    //Delete this conjoined message from all cache
+    manageMsgCache(messageFromCache);
 });
 
 discordClient.login(configFile.T2S_DISCORD_TOKEN).then(

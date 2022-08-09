@@ -60,8 +60,12 @@ class nodeInterface {
         const newNode = new linkedListNode(data);
         newNode.prev = this.lastCreatedNode;
 
-        this.lastCreatedNode.next = newNode;
+        if(this.lastCreatedNode)
+            this.lastCreatedNode.next = newNode;
 
+        //If this is our first node, set it as such
+        if(!this.beginningNode) this.beginningNode = newNode;
+        
         //Shift the last created node to our new one.
         this.lastCreatedNode = newNode;
 
