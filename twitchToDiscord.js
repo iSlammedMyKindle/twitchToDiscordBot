@@ -12,7 +12,9 @@ const configFile = require('./config.json'),
     MAX_MSG_CACHE = 100; //Not a hard limit, it's more of a practical one
 
 var twitchClient, //Defined after retrieving the authentication token.
-    currMsgCount = 0;
+    currMsgCount = 0,
+    lastUserStateMsgId = "",
+    lastUserStateMsg;
 
 /**
  * If an error happens either on twitch or discord, print the thing
@@ -44,6 +46,8 @@ function manageMsgCache(specificNode){
     return specificNode;
 }
 
+var twitchDelete = twitchObj=>twitchClient.deletemessage(twitchObj.channel, twitchObj.userState.userStateId || twitchObj.userState.id).then(undefined, genericPromiseError);
+
 //Twitch init
 /////////////
 
@@ -68,7 +72,13 @@ function loginToTwitch({access_token}, skipTokenSave){
         channels: configFile.T2S_CHANNELS
     });
     
-    twitchClient.connect().then(()=>console.log("Twitch bot is live!", configFile.T2S_USER));
+    twitchClient.connect().then(()=>{
+        console.log("Twitch bot is live! Sending a buffer message...", configFile.T2S_USER);
+        //Send a buffer message that allows us to track messages being sent as the twitch bot
+        //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
+        twitchClient.say(configFile.T2S_CHANNELS[0], '||`twitch bot buffer message!`||');
+    });
+
     twitchClient.on('message', (channel, userState, msg, self)=>{
         //Send a message to twitch
         //Something fascinating is, if a message is sent by the bot, self will be true. If I use the same username though when I chat, it's false.
@@ -85,14 +95,29 @@ function loginToTwitch({access_token}, skipTokenSave){
    
                //Count upwards and delete the oldest message if need be
                manageMsgCache();
-           }, genericPromiseError);
+    }, genericPromiseError);
         }
 
         //If we reach this and we're looking for this very message, then we have a chance to re-bind the message that we tried to send via discord
         else{
+
+            //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
+            if(lastUserStateMsg?.cueForDelete) twitchDelete(lastUserStateMsg);
+
+            //Record that last given userstate ID (specific to bots)
+            if(userState.id){
+                //Set the message to contain the special value: userStateId
+                lastUserStateMsg.userStateId = lastUserStateMsgId;
+                lastUserStateMsgId = userState.id;
+            }
+            else console.log("Got the userstate message with no ID -_-");
+
+            lastUserStateMsg = userState;
+
             if(twitchMessageSearchCache[msg]){
+
                 let existingNode = twitchMessageSearchCache[msg],
-                    twitchMessage = new twitchMsg(msg, userState, channel);
+                    twitchMessage = new twitchMsg(msg, self, userState, channel);
 
                 existingNode.data.twitchArray.push(twitchMessage);
                 discordTwitchCacheMap.set(twitchMessage, existingNode);
@@ -161,6 +186,7 @@ discordClient.on('messageCreate', m=>{
         twitchMessageSearchCache[messageToSend] = listNode;
         discordTwitchCacheMap.set(m, listNode);
 
+        //I'm only grabbing the first index here... this will need to change if we scale up.
         twitchClient.say(configFile.T2S_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
 
         //Count upwards and delete the oldest message if need be
@@ -173,8 +199,13 @@ discordClient.on('messageDelete', m=>{
     if(!messageFromCache) return;
 
     //Assuming we found a message we deleted on discord, delete it on twitch too
-    for(const i of messageFromCache.data.twitchArray)
-        twitchClient.deletemessage(i.channel, i.userState.id).then(undefined, genericPromiseError);
+    for(const i of messageFromCache.data.twitchArray){
+        //Cue for deletion instead of deleting the twitch side now
+        if(i.userState == lastUserStateMsg && i.userState.self && !i.userState.userStateId)
+            i.userState.cueForDelete = true;
+        
+        else twitchDelete(i);
+    }
 
     //Delete this conjoined message from all cache
     manageMsgCache(messageFromCache);

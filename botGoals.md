@@ -13,6 +13,7 @@
     * I think this only needs to be done on the discord side... if there's a sequence in twitch that has a channel's custom emoji, we should have something to configure that to render on discord.
 * ~~filter out discord IDs, replace them with the name of the discord user~~ - done!
 * ~~make a system that goes over the 500 character twitch message limit. [...]~~ ...tmi.js already can do that -_-
+* discord attachments should potentially be visible. Proably just images though, we don't want people downloading suspicious things (extra)
 
 
 ## Technical stuff

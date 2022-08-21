@@ -6,9 +6,10 @@ module.exports = {
         this.discord = discord;
         this.twitchArray = twitchArray;
     },
-    twitchMsg: function(msg = "", userState, channel){
+    twitchMsg: function(msg = "", self, userState, channel){
         this.msg = msg;
         this.userState = userState;
         this.channel = channel;
+        this.self = self;
     }
 }
