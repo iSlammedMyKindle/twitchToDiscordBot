@@ -1,13 +1,13 @@
 {
-    "T2S_CLIENT_ID": "g7c5im9dgby970ik7h3gujweepdhxx",
-    "T2S_SECRET": "h9rzslry00npt77h053tpa7bufh72o",
-    "T2S_USER": "ThisIsABot",
+    "T2S_CLIENT_ID": "",
+    "T2S_SECRET": "",
+    "T2S_USER": "",
     "T2S_CHANNELS": [
-        "ace2"
+        ""
     ],
     "T2S_SCOPE": "chat:read chat:edit channel:moderate",
     "T2S_REDIRECT_URI": "http://localhost:3000",
-    "T2S_DISCORD_CHANNEL": "826045539640148018",
-    "T2S_DISCORD_TOKEN": "MTAwNTMxMjI1MTE2ODgyNTM4NA.Gujxdr.crlTUfmAcvJZgpEug1je1DxM4jSLZ9yq875QUY",
-    "T2S_DEV_SAVE_TOKEN": true
+    "T2S_DISCORD_CHANNEL": "",
+    "T2S_DISCORD_TOKEN": "",
+    "T2S_DEV_SAVE_TOKEN": false
 }
