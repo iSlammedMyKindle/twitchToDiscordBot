@@ -197,6 +197,10 @@ discordClient.on('messageCreate', m=>{
             }
         }
 
+
+        //Include attachments inside the message if they are present on discord
+        if(m.attachments?.size) finalMessage += ' ' + [...m.attachments].map(e=>e[1].url).join(' ');
+
         const messageToSend = `${discordHeader}${finalMessage}`;
 
 
