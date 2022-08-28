@@ -106,16 +106,10 @@ function loginToTwitch({access_token}, skipTokenSave){
         //If we reach this and we're looking for this very message, then we have a chance to re-bind the message that we tried to send via discord
         else{
 
-            //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
-            if(lastUserStateMsg?.userState.cueForDelete){
-                twitchDelete(lastUserStateMsg);
-                manageMsgCache(discordTwitchCacheMap.get(lastUserStateMsg));
-            }
-
             //Record that last given userstate ID (specific to bots)
             if(userState.id){
                 //Set the message to contain the special value: botUserStateId
-                lastUserStateMsg.botUserStateId = lastUserStateMsgId;
+                lastUserStateMsg.userState.botUserStateId = lastUserStateMsgId;
                 lastUserStateMsgId = userState.id;
             }
             //TODO: this is a paradox you need to solve - find a way to delete the first message that isn't the buffer; the buffer message is *not* in the message cache.
@@ -123,13 +117,19 @@ function loginToTwitch({access_token}, skipTokenSave){
                 console.log("Got the userstate message with no ID -_-");
 
                 //[trailing bot message] This is a special method of recording the last twitch message because we need to have a method of removing this message after the fact
-
                 let twitchMessage = new twitchMsg(msg, self, userState, channel);
                 lastUserStateMsg = twitchMessage;
 
                 //Adding an node intentionally without a discord message because this is the buffer message.
                 const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
                 discordTwitchCacheMap.set(twitchMessage, listNode);
+            }
+
+            //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
+            //We wait until after the userstate message gets a bot message ID
+            if(lastUserStateMsg?.userState.cueForDelete){
+                twitchDelete(lastUserStateMsg);
+                manageMsgCache(discordTwitchCacheMap.get(lastUserStateMsg));
             }
 
             //If we found the twitch message we wanted to connect, we no longer need it in the cache

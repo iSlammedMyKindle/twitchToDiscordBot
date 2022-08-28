@@ -6,8 +6,10 @@
     * a setting to temporarily disable messages coming from either side.
 * manage [delete, edit] messages, both from twitch and discord
     * challenge: if a message is > 500, how would editing large messages be handled...
+        * I got an idea; the cache for the twitch messages could be artificially broken down to predict how a series of twitch messages would send. Using string matching, it could all go back to the same discord message object. yay!
 * replies from discord are reflected on twitch
     * may not be technically possible in the way one would normally expect.
+    * don't think it's possible, I'll have to check the docs. if somebody replies from twitch, it could be reflected on discord.
 * ~~indicate custom emoji~~
     * done for now, but could see some growth in the future.
     * I think this only needs to be done on the discord side... if there's a sequence in twitch that has a channel's custom emoji, we should have something to configure that to render on discord.
