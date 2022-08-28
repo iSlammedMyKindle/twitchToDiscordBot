@@ -13,7 +13,6 @@ const configFile = require('./config.json'),
 
 var twitchClient, //Defined after retrieving the authentication token.
     currMsgCount = 0,
-    lastUserStateMsgId = "",
     lastUserStateMsg;
 
 /**
@@ -109,8 +108,7 @@ function loginToTwitch({access_token}, skipTokenSave){
             //Record that last given userstate ID (specific to bots)
             if(userState.id){
                 //Set the message to contain the special value: botUserStateId
-                lastUserStateMsg.userState.botUserStateId = lastUserStateMsgId;
-                lastUserStateMsgId = userState.id;
+                lastUserStateMsg.userState.botUserStateId = userState.id;
             }
             //TODO: this is a paradox you need to solve - find a way to delete the first message that isn't the buffer; the buffer message is *not* in the message cache.
             else{
@@ -215,7 +213,7 @@ discordClient.on('messageCreate', m=>{
     }
 });
 
-discordClient.on('messageDelete', m=>{
+const discordOnMesgDel = m=>{
     const messageFromCache = discordTwitchCacheMap.get(m);
     if(!messageFromCache) return;
 
@@ -232,6 +230,13 @@ discordClient.on('messageDelete', m=>{
 
     //Delete this conjoined message from all cache
     manageMsgCache(messageFromCache);
+}
+
+discordClient.on('messageDelete', discordOnMesgDel);
+
+discordClient.on('messageDeleteBulk', messages=>{
+    for(let mesgKeyValue of messages)
+        discordOnMesgDel(mesgKeyValue[1]);
 });
 
 discordClient.login(configFile.T2S_DISCORD_TOKEN).then(
