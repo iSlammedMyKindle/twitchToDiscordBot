@@ -40,13 +40,18 @@ function manageMsgCache(specificNode){
         
     messageLinkdListInterface.rebindForDelete(specificNode);
 
-    discordTwitchCacheMap.delete(specificNode.data.twitchArray[0]);
-    discordTwitchCacheMap.delete(specificNode.data.discord);
+    if(specificNode.data.twitchArray[0])
+        discordTwitchCacheMap.delete(specificNode.data.twitchArray[0]);
+    
+    if(specificNode.data.discord)
+        discordTwitchCacheMap.delete(specificNode.data.discord);
 
     return specificNode;
 }
 
-var twitchDelete = twitchObj=>twitchClient.deletemessage(twitchObj.channel, twitchObj.userState.userStateId || twitchObj.userState.id).then(undefined, genericPromiseError);
+var twitchDelete = twitchObj=>{
+    twitchClient.deletemessage(twitchObj.channel, twitchObj.userState.botUserStateId || twitchObj.userState.id).then(undefined, genericPromiseError);
+}
 
 //Twitch init
 /////////////
@@ -76,7 +81,7 @@ function loginToTwitch({access_token}, skipTokenSave){
         console.log("Twitch bot is live! Sending a buffer message...", configFile.T2S_USER);
         //Send a buffer message that allows us to track messages being sent as the twitch bot
         //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-        twitchClient.say(configFile.T2S_CHANNELS[0], '||`twitch bot buffer message!`||');
+        twitchClient.say(configFile.T2S_CHANNELS[0], 'twitch bot buffer message!');
     });
 
     twitchClient.on('message', (channel, userState, msg, self)=>{
@@ -87,7 +92,7 @@ function loginToTwitch({access_token}, skipTokenSave){
                //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
    
                //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
-               const twitchMessage = new twitchMsg(msg, userState, channel);
+               const twitchMessage = new twitchMsg(msg, self, userState, channel);
                const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
    
                discordTwitchCacheMap.set(twitchMessage, listNode);
@@ -95,29 +100,45 @@ function loginToTwitch({access_token}, skipTokenSave){
    
                //Count upwards and delete the oldest message if need be
                manageMsgCache();
-    }, genericPromiseError);
+            }, genericPromiseError);
         }
 
         //If we reach this and we're looking for this very message, then we have a chance to re-bind the message that we tried to send via discord
         else{
 
             //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
-            if(lastUserStateMsg?.cueForDelete) twitchDelete(lastUserStateMsg);
+            if(lastUserStateMsg?.userState.cueForDelete){
+                twitchDelete(lastUserStateMsg);
+                manageMsgCache(discordTwitchCacheMap.get(lastUserStateMsg));
+            }
 
             //Record that last given userstate ID (specific to bots)
             if(userState.id){
-                //Set the message to contain the special value: userStateId
-                lastUserStateMsg.userStateId = lastUserStateMsgId;
+                //Set the message to contain the special value: botUserStateId
+                lastUserStateMsg.botUserStateId = lastUserStateMsgId;
                 lastUserStateMsgId = userState.id;
             }
-            else console.log("Got the userstate message with no ID -_-");
+            //TODO: this is a paradox you need to solve - find a way to delete the first message that isn't the buffer; the buffer message is *not* in the message cache.
+            else{
+                console.log("Got the userstate message with no ID -_-");
 
-            lastUserStateMsg = userState;
+                //[trailing bot message] This is a special method of recording the last twitch message because we need to have a method of removing this message after the fact
 
+                let twitchMessage = new twitchMsg(msg, self, userState, channel);
+                lastUserStateMsg = twitchMessage;
+
+                //Adding an node intentionally without a discord message because this is the buffer message.
+                const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
+                discordTwitchCacheMap.set(twitchMessage, listNode);
+            }
+
+            //If we found the twitch message we wanted to connect, we no longer need it in the cache
             if(twitchMessageSearchCache[msg]){
 
                 let existingNode = twitchMessageSearchCache[msg],
                     twitchMessage = new twitchMsg(msg, self, userState, channel);
+
+                lastUserStateMsg = twitchMessage;
 
                 existingNode.data.twitchArray.push(twitchMessage);
                 discordTwitchCacheMap.set(twitchMessage, existingNode);
@@ -201,8 +222,10 @@ discordClient.on('messageDelete', m=>{
     //Assuming we found a message we deleted on discord, delete it on twitch too
     for(const i of messageFromCache.data.twitchArray){
         //Cue for deletion instead of deleting the twitch side now
-        if(i.userState == lastUserStateMsg && i.userState.self && !i.userState.userStateId)
+        if(i.userState == lastUserStateMsg.userState && i.self && !i.userState.botUserStateId){
             i.userState.cueForDelete = true;
+            console.log("The quick brown fox");
+        }
         
         else twitchDelete(i);
     }
