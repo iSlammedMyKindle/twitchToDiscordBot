@@ -1,10 +1,22 @@
-class linkedListNode {
+// @ts-nocheck
+// This file is simply none of my buisness.
+// I have not been fed enough cookies to 
+// even consider this file.
+// if you would like to
+// provide said cookies
+// please DM me
+// I will happily
+// do this if I
+// recieve them
+class linkedListNode
+{
 
-    data;
-    next = null;
-    prev = null;
+    public data: any;
+    public next: any = null;
+    public prev: any = null;
 
-    constructor(data){
+    constructor(data?: any)
+    {
         this.data = data;
     }
 
@@ -13,28 +25,31 @@ class linkedListNode {
      * @param {number} index Grab items that are before this one, or after this one. A postive index takes you forward, and a negative index brings you back. it's possible for a undefined value to exist.
      * @param {boolean} isForward false traverses backwards, true goes forwards
      */
-    getItemAt(index = 0, isForward = true){
+    getItemAt(index: number = 0, isForward: boolean = true)
+    {
 
         if(index === 0) return this;
 
         if(index < 0) return null;
-        
+
         const key = ['prev', 'next'][isForward * 1];
-        
+
         if(this[key] && index)
             return this[key].getItemAt(--index, isForward);
 
         return null;
     }
 
-    get beg(){
+    get beg()
+    {
         if(this.prev != null)
             return this.prev.beg;
 
         return this;
     }
 
-    get end(){
+    get end()
+    {
         if(this.next != null)
             return this.next.end;
 
@@ -42,13 +57,18 @@ class linkedListNode {
     }
 }
 
-class nodeInterface {
+class nodeInterface
+{
     //The node that was last made using `addNode`; should always be the last node in the list.
-    lastCreatedNode;
-    beginningNode;
+    public lastCreatedNode: linkedListNode | undefined;
+    public beginningNode: linkedListNode | undefined;
 
-    constructor(data){
-        if(data) this.beginningNode = this.lastCreatedNode = new linkedListNode(data);
+    constructor(data?: any)
+    {
+        if(data) 
+            this.beginningNode = 
+            this.lastCreatedNode = 
+            new linkedListNode(data);
     }
 
     /**
@@ -56,7 +76,8 @@ class nodeInterface {
      * @param {*} data - the data that will be inserted into the new linked list node.
      * @returns The new node that was created, it will also be placed inside `lastCreatedNode`
      */
-    addNode(data){
+    addNode(data?: any)
+    {
         const newNode = new linkedListNode(data);
         newNode.prev = this.lastCreatedNode;
 
@@ -65,17 +86,18 @@ class nodeInterface {
 
         //If this is our first node, set it as such
         if(!this.beginningNode) this.beginningNode = newNode;
-        
+
         //Shift the last created node to our new one.
         this.lastCreatedNode = newNode;
 
         return newNode;
     }
 
-     /**
-     * Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
-     */
-      rebindForDelete(targetNode){
+    /**
+    * Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
+    */
+    rebindForDelete(targetNode: any)
+    {
         if(targetNode.next?.prev)
             targetNode.next.prev = targetNode.prev;
 
@@ -85,7 +107,7 @@ class nodeInterface {
         //If this is the last linked node in the list, grab it's previous node instead to make that the "lastCreatedNode" (credit - bevelled from twitch)
         if(this.lastCreatedNode == targetNode)
             this.lastCreatedNode = targetNode.prev;
-        
+
         if(this.beginningNode == targetNode)
             this.beginningNode = targetNode.next;
 
@@ -93,4 +115,8 @@ class nodeInterface {
 
 }
 
-module.exports = { linkedListNode, nodeInterface };
+export
+{
+    linkedListNode,
+    nodeInterface
+};

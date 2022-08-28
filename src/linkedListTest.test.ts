@@ -1,4 +1,4 @@
-const { nodeInterface } = require('./linkedList');
+import { nodeInterface } from './linkedList';
 
 const fancyInterface = new nodeInterface(1234);
 
@@ -7,10 +7,10 @@ const test = fancyInterface.lastCreatedNode,
     otherThing = fancyInterface.addNode(9876);
 
 
-console.log('end - ', test.end.data);
+console.log('end - ', test!.end.data);
 console.log('beg - ', otherThing.beg.data);
 
-console.log('itemAt 1 - ', test.getItemAt(1));
+console.log('itemAt 1 - ', test!.getItemAt(1));
 
 //Test the rebind node function, then delete the thing
 // thing.rebindForDelete();
@@ -23,4 +23,4 @@ fancyInterface.rebindForDelete(test);
 const thingBegNode = thing == fancyInterface.beginningNode;
 
 console.log('Thing is the beginning node', thingBegNode);
-console.assert(thingBegNode, "'thing' should be beginning node after the first one got deleted", thing, fancyInterface.beginningNode);
+console.assert(thingBegNode, '\'thing\' should be beginning node after the first one got deleted', thing, fancyInterface.beginningNode);

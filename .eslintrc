@@ -1,0 +1,27 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended"
+    ],
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "brace-style": [
+            2,
+            "allman",
+            {
+                "allowSingleLine": true
+            }
+        ],
+        "quotes": [
+            2,
+            "single",
+            {
+                "allowTemplateLiterals": true
+            }
+        ]
+    }
+}
