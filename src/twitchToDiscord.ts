@@ -61,19 +61,12 @@ const twitchDelete = (twitchObj: twitchMsg): void =>
 //Twitch init
 /////////////
 
-
-// This is the best line of code I have written for this.
-interface KillMePlease
-{
-    access_token: string;
-}
-
 /**
  * Login to twitch using the access token found in our oauth process
  * @param {string} {access_token} a javascript object containing at minimum, a twitch access token 
  * @param {boolean} shipTokenSave
  */
-function loginToTwitch({ access_token }: KillMePlease, skipTokenSave: boolean): void
+function loginToTwitch({ access_token }: { access_token: string }, skipTokenSave: boolean): void
 {
     //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
     //If we have the save token flag enabled, save this to "devTwitchToken"
