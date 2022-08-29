@@ -2,10 +2,12 @@
     "T2S_CLIENT_ID": "",
     "T2S_SECRET": "",
     "T2S_USER": "",
-    "T2S_CHANNELS": [""],
-    "T2S_SCOPE":"chat:read chat:edit channel:moderate",
+    "T2S_CHANNELS": [
+        ""
+    ],
+    "T2S_SCOPE": "chat:read chat:edit channel:moderate",
     "T2S_REDIRECT_URI": "http://localhost:3000",
     "T2S_DISCORD_CHANNEL": "",
-    "T2S_DISCORD_TOKEN":"",
-    "T2S_DEV_SAVE_TOKEN":false
+    "T2S_DISCORD_TOKEN": "",
+    "T2S_DEV_SAVE_TOKEN": false
 }
