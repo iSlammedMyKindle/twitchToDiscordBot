@@ -39,6 +39,6 @@ Create the channel, and then copy it's discord ID (enable developer settings in 
 
 You'll need this setting toggled to true if you are just developing the bot. Twitch only offers up to 50 tokens at a given time, so this will prevent you from maxing that out quickly!
 
-## launching the bot
+## Launching the bot
 
-Type `node twitchToDiscord.js` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with twitch. Once that's finished, the bot should be up and running! If you set `T2S_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
+Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with twitch. Once that's finished, the bot should be up and running! If you set `T2S_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)

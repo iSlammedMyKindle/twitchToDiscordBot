@@ -2,7 +2,7 @@
   "scripts": {
     "build": "npx tsc",
     "watch": "npx nodemon ./src/twitchToDiscord.ts",
-    "run": "node ./dist/src/twitchToDiscord.js"
+    "start": "node ./dist/src/twitchToDiscord.js"
   },
   "dependencies": {
     "discord.js": "^13.8.1",
