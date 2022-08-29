@@ -222,10 +222,8 @@ discordClient.on('messageCreate', (m: Message<boolean>) =>
 
         const discordId: string = /[0-9]{1,}/.exec(mention[0])![0];
 
-        // @ts-ignore nice code!
         if(!foundIds[discordId])
         {
-            // @ts-ignore 
             foundIds[discordId] = true;
             finalMessage = finalMessage.replaceAll(mention[0], '@[m]' + m.mentions.members!.get(discordId)!.user.tag);
         }
