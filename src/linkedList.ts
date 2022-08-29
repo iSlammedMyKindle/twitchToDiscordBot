@@ -1,13 +1,3 @@
-// @ts-nocheck
-// This file is simply none of my buisness.
-// I have not been fed enough cookies to 
-// even consider this file.
-// if you would like to
-// provide said cookies
-// please DM me
-// I will happily
-// do this if I
-// recieve them
 class linkedListNode
 {
 
@@ -32,15 +22,15 @@ class linkedListNode
 
         if(index < 0) return null;
 
-        const key = ['prev', 'next'][isForward * 1];
+        const key: string = isForward ? 'prev' : 'next';
 
-        if(this[key] && index)
-            return this[key].getItemAt(--index, isForward);
+        if(this[key as keyof linkedListNode] && index)
+            return this[key as keyof linkedListNode].getItemAt(--index, isForward);
 
         return null;
     }
 
-    get beg()
+    get beg(): any
     {
         if(this.prev != null)
             return this.prev.beg;
@@ -48,7 +38,7 @@ class linkedListNode
         return this;
     }
 
-    get end()
+    get end(): any
     {
         if(this.next != null)
             return this.next.end;
