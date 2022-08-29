@@ -51,9 +51,9 @@ function manageMsgCache(specificNode?: linkedListNode): number | linkedListNode
 
 /**
  * @description Deletes a twitch message
- * @param {*} twitchObj I have no fucking clue as to what could be passed for this. It changes every other fucking call. 
+ * @param {twitchMsg} twitchObj A twitchMsg object.
  */
-const twitchDelete = (twitchObj: any): void =>
+const twitchDelete = (twitchObj: twitchMsg): void =>
 {
     twitchClient.deletemessage(twitchObj.channel, twitchObj.userState.botUserStateId || twitchObj.userState.id).then(undefined, genericPromiseError);
 };
