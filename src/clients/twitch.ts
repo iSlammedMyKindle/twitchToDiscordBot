@@ -20,7 +20,7 @@ function registerTwitch(): void
     /**
     * Login to twitch using the access token found in our oauth process
     * @param {string} {access_token} a javascript object containing at minimum, a twitch access token 
-    * @param {boolean} shipTokenSave
+    * @param {boolean} skipTokenSave
     */
     function loginToTwitch({ access_token }: { access_token: string; }, skipTokenSave: boolean): void
     {
