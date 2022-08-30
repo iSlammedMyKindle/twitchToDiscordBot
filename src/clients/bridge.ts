@@ -1,8 +1,8 @@
-import tmijs from 'tmi.js';
-import configFile from '../../config.json';
 import { TextChannel } from 'discord.js';
 import { linkedListNode, nodeInterface } from '../linkedList';
 import { twitchMsg } from '../messageObjects';
+import tmijs from 'tmi.js';
+import configFile from '../../config.json';
 
 /**
  * If an error happens either on twitch or discord, print the thing
