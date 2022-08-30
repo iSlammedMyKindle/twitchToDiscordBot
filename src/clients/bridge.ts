@@ -19,16 +19,10 @@ class Bridge
 
     public twitchClient: tmijs.Client | undefined;
 
-
     public discordTwitchCacheMap = new Map();
     public twitchMessageSearchCache: { [key: string]: linkedListNode; } = {};
     public messageLinkdListInterface = new nodeInterface();
     public lastUserStateMsg: any;
-
-    constructor()
-    {
-
-    }
 
     public manageMsgCache(specificNode?: linkedListNode): number | linkedListNode
     {
