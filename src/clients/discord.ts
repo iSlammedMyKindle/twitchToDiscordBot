@@ -2,9 +2,8 @@ import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } 
 import { linkedListNode, nodeInterface } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
 import { genericPromiseError } from './bridge';
+import bridge, { configFile } from './bridge';
 import tmijs from 'tmi.js';
-import configFile from '../../config.json';
-import bridge from './bridge';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 const twitchClient: tmijs.Client = bridge.twitchClient as tmijs.Client;

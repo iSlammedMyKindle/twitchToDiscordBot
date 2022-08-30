@@ -1,8 +1,7 @@
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { authenticateTwitch } from '../oauth';
 import { Message } from 'discord.js';
-import bridge, { genericPromiseError } from './bridge';
-import configFile from '../../config.json';
+import bridge, { genericPromiseError, configFile } from './bridge';
 import tmijs from 'tmi.js';
 import fs from 'fs';
 

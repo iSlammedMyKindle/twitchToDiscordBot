@@ -1,4 +1,5 @@
 import tmijs from 'tmi.js';
+import configFile from '../../config.json';
 import { TextChannel } from 'discord.js';
 import { linkedListNode, nodeInterface } from '../linkedList';
 import { twitchMsg } from '../messageObjects';
@@ -54,3 +55,6 @@ class Bridge
 }
 
 export default new Bridge();
+export {
+    configFile
+};
