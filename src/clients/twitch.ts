@@ -1,16 +1,13 @@
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { authenticateTwitch } from '../oauth';
 import { Message } from 'discord.js';
-import bridge, { genericPromiseError, configFile } from './bridge';
+import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
+const { twitchMessageSearchCache, messageLinkdListInterface, discordTwitchCacheMap } = bridge;
 import tmijs from 'tmi.js';
 import fs from 'fs';
 
 let lastUserStateMsg: any = bridge.lastUserStateMsg;
 let twitchClient: tmijs.Client = bridge.twitchClient as tmijs.Client;
-
-const twitchMessageSearchCache = bridge.twitchMessageSearchCache;
-const messageLinkdListInterface = bridge.messageLinkdListInterface;
-const discordTwitchCacheMap = bridge.discordTwitchCacheMap;
 
 //Twitch init
 /////////////
@@ -75,7 +72,7 @@ function registerTwitch(): void
                     discordTwitchCacheMap.set(discordMessage, listNode);
 
                     //Count upwards and delete the oldest message if need be
-                    bridge.manageMsgCache();
+                    manageMsgCache();
                 }, genericPromiseError);
             }
 
@@ -107,8 +104,8 @@ function registerTwitch(): void
                 //We wait until after the userstate message gets a bot message ID
                 if(lastUserStateMsg?.userState.cueForDelete)
                 {
-                    bridge.twitchDelete(lastUserStateMsg);
-                    bridge.manageMsgCache(discordTwitchCacheMap.get(lastUserStateMsg));
+                    twitchDelete(lastUserStateMsg);
+                    manageMsgCache(discordTwitchCacheMap.get(lastUserStateMsg));
                 }
 
                 //If we found the twitch message we wanted to connect, we no longer need it in the cache

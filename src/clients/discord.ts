@@ -1,18 +1,13 @@
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
-import { linkedListNode, nodeInterface } from '../linkedList';
+import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
-import { genericPromiseError } from './bridge';
-import bridge, { configFile } from './bridge';
+import bridge, { configFile, genericPromiseError, manageMsgCache, twitchDelete } from './bridge';
+const { messageLinkdListInterface, twitchMessageSearchCache, discordTwitchCacheMap, lastUserStateMsg } = bridge;
 import tmijs from 'tmi.js';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 const twitchClient: tmijs.Client = bridge.twitchClient as tmijs.Client;
 let targetDiscordChannel: TextChannel | undefined;
-
-const messageLinkdListInterface: nodeInterface = bridge.messageLinkdListInterface;
-const twitchMessageSearchCache = bridge.twitchMessageSearchCache;
-const discordTwitchCacheMap = bridge.discordTwitchCacheMap;
-const lastUserStateMsg = bridge.lastUserStateMsg;
 
 function registerDiscord(): void 
 {
@@ -78,7 +73,7 @@ function registerDiscord(): void
         twitchClient.say(configFile.T2S_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
 
         //Count upwards and delete the oldest message if need be
-        bridge.manageMsgCache();
+        manageMsgCache();
     });
 
     const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
@@ -96,11 +91,11 @@ function registerDiscord(): void
                 console.log('The quick brown fox');
             }
 
-            else bridge.twitchDelete(i);
+            else twitchDelete(i);
         }
 
         //Delete this conjoined message from all cache
-        bridge.manageMsgCache(messageFromCache);
+        manageMsgCache(messageFromCache);
     };
 
     discordClient.on('messageDelete', discordOnMesgDel);
