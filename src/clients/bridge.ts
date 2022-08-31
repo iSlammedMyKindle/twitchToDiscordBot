@@ -22,9 +22,13 @@ const Bridge = {
 };
 
 
-function manageMsgCache(specificNode?: linkedListNode): number | linkedListNode
+function manageMsgCache(specificNode?: linkedListNode): null | linkedListNode
 {
-    if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE) return Bridge.currMsgCount++;
+    if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE)
+    {
+        Bridge.currMsgCount++;
+        return null;
+    }
 
     //Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
     if(!specificNode)
