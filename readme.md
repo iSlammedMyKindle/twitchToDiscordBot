@@ -1,22 +1,23 @@
 # Twitch To Discord
 
-Welecome! This is one of the scraps that are helping to run my discord server. The goal of this bot is to combine the abilities of discord and twitch, and allow both chats to communicate between eachother.
+Welecome! This is one of the scraps that are helping to run my discord server. The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
 
 This file is designed to provided an overview of how to get the bot setup yourself on a custom environment.
 
 ## Setup - twitch side
 
 1. To start on the twitch side, first navigate to [the twitch console](https://dev.twitch.tv/console)
-1. From here, you would click "Register Your application". It needs a name that hasn't been used on a bot before.
-1. After the bot is created, go ahead and click "manage" on the new application, you will see options for `Client ID` and `Client Secret`. Create the the secret, and store it for later. Client ID will always be the same, but save this as well. These items in particular should be stored in config.js as `T2S_CLIENT_ID` and `T2S_SECRET`
+1. Click on the "Applications" tab at the top.
+1. From here, you would click "Register Your application". It needs a name that hasn't been used on a bot before, set the `T2D_USER` in config.json to your chosen application name.
+1. After the bot is created, go ahead and click "manage" on the new application, you will see options for `Client ID` and `Client Secret`. Create the the secret, and store it for later. Client ID will always be the same, but save this as well. These items in particular should be stored in config.json as `T2D_CLIENT_ID` and `T2D_SECRET`
 
 These new credentials will be there to help you authenticate this bot to use your user. This will be done in your web browser. When finished, the bot should communicate out of the user that authenticated it (e.g iSlammedMyKindle would be used to send messages, but internally, the bot can detect if it was sent via itself or other means besides your own keyboard input.)
 
-There's also one channel you need to insert as well (`T2S_CHANNELS`) - the bot only reads the first one, so in the first array index, pop in your username or whatever user's channel name to listen to that one.
+There's also one channel you need to insert as well (`T2D_CHANNELS`) - the bot only reads the first one, so in the first array index, pop in your username or whatever user's channel name to listen to that one.
 
 ### External server
 
-If you intend on deploying this on an external server, you will need to change the address found in `config.json` -> `T2S_REDIRECT_URI`. Change it to the ip or domain name of the server, and redirects should work accordingly. (note that in this early version, the port is hard-coded to 3000; this will be used to deploy a temporary http server. Keep this in mind as providers like google cloud require that you expose ports before using them)
+If you intend on deploying this on an external server, you will need to change the address found in `config.json` -> `T2D_REDIRECT_URI`. Change it to the ip or domain name of the server, and redirects should work accordingly. (note that in this early version, the port is hard-coded to 3000; this will be used to deploy a temporary http server. Keep this in mind as providers like google cloud require that you expose ports before using them)
 
 Another note is that if you try to deploy on a web server outside your local machine; auto-opening the browser is not supported. You will need to manually click on the link that is generated in the terminal to fully launch it. After launching the link, the process should be back to the flow as described above.
 
@@ -33,7 +34,7 @@ Another note is that if you try to deploy on a web server outside your local mac
 
 On your discord server, the channel that will reflect twtich needs to have permissions disabled on it. Twitch is directly based on an IRC standard, which means things like threads are not going to be supported.
 
-Create the channel, and then copy it's discord ID (enable developer settings in your personal discord settings to make this work.) You can also find the discord ID in the URL of your browser if discord is being used there (it will be the last set of numbers in the link). Place the channel ID inside `config.js` -> `T2S_DISCORD_CHANNEL`.
+Create the channel, and then copy it's discord ID (enable developer settings in your personal discord settings to make this work.) You can also find the discord ID in the URL of your browser if discord is being used there (it will be the last set of numbers in the link). Place the channel ID inside `config.js` -> `T2D_DISCORD_CHANNEL`.
 
 ## `T2S_DEV_SAVE_TOKEN`
 
@@ -41,4 +42,4 @@ You'll need this setting toggled to true if you are just developing the bot. Twi
 
 ## Launching the bot
 
-Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with twitch. Once that's finished, the bot should be up and running! If you set `T2S_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
+Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with twitch. Once that's finished, the bot should be up and running! If you set `T2D_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)

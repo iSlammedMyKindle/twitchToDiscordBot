@@ -65,7 +65,7 @@ function registerDiscord(): void
         bridge.discordTwitchCacheMap.set(m, listNode);
 
         //I'm only grabbing the first index here... this will need to change if we scale up.
-        bridge.twitchClient!.say(configFile.T2S_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
+        bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
@@ -100,14 +100,14 @@ function registerDiscord(): void
             discordOnMesgDel(mesgKeyValue[1]);
     });
 
-    discordClient.login(configFile.T2S_DISCORD_TOKEN).then(
+    discordClient.login(configFile.T2D_DISCORD_TOKEN).then(
         async () =>
         {
             console.log('Discord bot is live!', discordClient.user!.tag);
 
-            const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(configFile.T2S_DISCORD_CHANNEL);
+            const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(configFile.T2D_DISCORD_CHANNEL);
             if(!fetchChannel || !fetchChannel.isText())
-                throw new Error('Text channel fetched with ID (' + configFile.T2S_DISCORD_CHANNEL + ') is not a text channel.');
+                throw new Error('Text channel fetched with ID (' + configFile.T2D_DISCORD_CHANNEL + ') is not a text channel.');
 
             // Cast is there to convert it from any text channel into a TextChannel
             // we already make sure that it is a text channel, and if it isn't we throw

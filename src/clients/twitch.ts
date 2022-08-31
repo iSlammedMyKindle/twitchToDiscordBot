@@ -19,7 +19,7 @@ function registerTwitch(): void
     {
         //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
         //If we have the save token flag enabled, save this to "devTwitchToken"
-        if(!skipTokenSave && configFile.T2S_DEV_SAVE_TOKEN)
+        if(!skipTokenSave && configFile.T2D_DEV_SAVE_TOKEN)
             fs.writeFile('./devTwitchToken', access_token, null, error =>
             {
                 if(error) console.error('I hit a snag...', error);
@@ -28,18 +28,18 @@ function registerTwitch(): void
         bridge.twitchClient = tmijs.Client({
             options: { debug: true },
             identity: {
-                username: configFile.T2S_USER,
+                username: configFile.T2D_USER,
                 password: 'oauth:' + access_token
             },
-            channels: configFile.T2S_CHANNELS
+            channels: configFile.T2D_CHANNELS
         });
 
         bridge.twitchClient.connect().then(() =>
         {
-            console.log('Twitch bot is live! Sending a buffer message...', configFile.T2S_USER);
+            console.log('Twitch bot is live! Sending a buffer message...', configFile.T2D_USER);
             //Send a buffer message that allows us to track messages being sent as the twitch bot
             //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-            bridge.twitchClient!.say(configFile.T2S_CHANNELS[0], 'twitch bot buffer message!');
+            bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], 'twitch bot buffer message!');
         });
 
         bridge.twitchClient.on('message', (channel: string, userState: tmijs.Userstate, msg: string, self: boolean) =>
@@ -123,17 +123,17 @@ function registerTwitch(): void
 
     //Login to twitch
     //There are a lot of things that were named differently because this command has the potential of using environemnt variables, so this will be painful to look at and I'm sorry XP
-    if(configFile.T2S_DEV_SAVE_TOKEN && fs.existsSync('./devTwitchToken'))
+    if(configFile.T2D_DEV_SAVE_TOKEN && fs.existsSync('./devTwitchToken'))
     {
         //If the file exists, use the thing
         console.log('==Found the token file! (devTwitchToken!) Using that instead of logging in via oauth (if this token is old, delete the file)==');
         loginToTwitch({ access_token: fs.readFileSync('./devTwitchToken') as unknown as string }, true);
     }
     else authenticateTwitch({
-        scope: configFile.T2S_SCOPE,
-        redirect_uri: configFile.T2S_REDIRECT_URI,
-        client_id: configFile.T2S_CLIENT_ID,
-        client_secret: configFile.T2S_SECRET
+        scope: configFile.T2D_SCOPE,
+        redirect_uri: configFile.T2D_REDIRECT_URI,
+        client_id: configFile.T2D_CLIENT_ID,
+        client_secret: configFile.T2D_SECRET
     }).then(loginToTwitch as any);
 }
 
