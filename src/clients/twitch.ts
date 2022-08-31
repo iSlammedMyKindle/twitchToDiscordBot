@@ -6,9 +6,6 @@ const { twitchMessageSearchCache, messageLinkdListInterface, discordTwitchCacheM
 import tmijs from 'tmi.js';
 import fs from 'fs';
 
-let lastUserStateMsg: any = bridge.lastUserStateMsg;
-let twitchClient: tmijs.Client = bridge.twitchClient as tmijs.Client;
-
 //Twitch init
 /////////////
 
@@ -29,7 +26,7 @@ function registerTwitch(): void
                 if(error) console.error('I hit a snag...', error);
             });
 
-        twitchClient = tmijs.Client({
+        bridge.twitchClient = tmijs.Client({
             options: { debug: true },
             identity: {
                 username: configFile.T2S_USER,
@@ -38,17 +35,15 @@ function registerTwitch(): void
             channels: configFile.T2S_CHANNELS
         });
 
-
-
-        twitchClient.connect().then(() =>
+        bridge.twitchClient.connect().then(() =>
         {
             console.log('Twitch bot is live! Sending a buffer message...', configFile.T2S_USER);
             //Send a buffer message that allows us to track messages being sent as the twitch bot
             //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-            twitchClient.say(configFile.T2S_CHANNELS[0], 'twitch bot buffer message!');
+            bridge.twitchClient!.say(configFile.T2S_CHANNELS[0], 'twitch bot buffer message!');
         });
 
-        twitchClient.on('message', (channel: string, userState: tmijs.Userstate, msg: string, self: boolean) =>
+        bridge.twitchClient.on('message', (channel: string, userState: tmijs.Userstate, msg: string, self: boolean) =>
         {
             //Send a message to twitch
             //Something fascinating is, if a message is sent by the bot, self will be true. If I use the same username though when I chat, it's false.
@@ -84,7 +79,7 @@ function registerTwitch(): void
                 if(userState.id)
                 {
                     //Set the message to contain the special value: botUserStateId
-                    lastUserStateMsg.userState.botUserStateId = userState.id;
+                    bridge.lastUserStateMsg.userState.botUserStateId = userState.id;
                 }
                 //TODO: this is a paradox you need to solve - find a way to delete the first message that isn't the buffer; the buffer message is *not* in the message cache.
                 else
@@ -93,7 +88,7 @@ function registerTwitch(): void
 
                     //[trailing bot message] This is a special method of recording the last twitch message because we need to have a method of removing this message after the fact
                     const twitchMessage = new twitchMsg(msg, self, userState, channel);
-                    lastUserStateMsg = twitchMessage;
+                    bridge.lastUserStateMsg = twitchMessage;
 
                     //Adding an node intentionally without a discord message because this is the buffer message.
                     const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
@@ -102,10 +97,10 @@ function registerTwitch(): void
 
                 //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
                 //We wait until after the userstate message gets a bot message ID
-                if(lastUserStateMsg?.userState.cueForDelete)
+                if(bridge.lastUserStateMsg?.userState.cueForDelete)
                 {
-                    twitchDelete(lastUserStateMsg);
-                    manageMsgCache(discordTwitchCacheMap.get(lastUserStateMsg));
+                    twitchDelete(bridge.lastUserStateMsg);
+                    manageMsgCache(discordTwitchCacheMap.get(bridge.lastUserStateMsg));
                 }
 
                 //If we found the twitch message we wanted to connect, we no longer need it in the cache
@@ -115,7 +110,7 @@ function registerTwitch(): void
                     const existingNode = twitchMessageSearchCache[msg],
                         twitchMessage = new twitchMsg(msg, self, userState, channel);
 
-                    lastUserStateMsg = twitchMessage;
+                    bridge.lastUserStateMsg = twitchMessage;
 
                     existingNode.data.twitchArray.push(twitchMessage);
                     discordTwitchCacheMap.set(twitchMessage, existingNode);

@@ -2,12 +2,8 @@ import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } 
 import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
 import bridge, { configFile, genericPromiseError, manageMsgCache, twitchDelete } from './bridge';
-const { messageLinkdListInterface, twitchMessageSearchCache, discordTwitchCacheMap, lastUserStateMsg } = bridge;
-import tmijs from 'tmi.js';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
-const twitchClient: tmijs.Client = bridge.twitchClient as tmijs.Client;
-let targetDiscordChannel: TextChannel | undefined;
 
 function registerDiscord(): void 
 {
@@ -17,10 +13,10 @@ function registerDiscord(): void
         if(m.author.bot || m.guild === null)
             return;
 
-        if(!targetDiscordChannel)
+        if(!bridge.targetDiscordChannel)
             return;
 
-        if(m.channel.id !== targetDiscordChannel.id)
+        if(m.channel.id !== bridge.targetDiscordChannel.id)
             return;
 
         //tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
@@ -65,12 +61,12 @@ function registerDiscord(): void
         const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
         //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-        const listNode: linkedListNode = messageLinkdListInterface.addNode(new conjoinedMsg(m));
-        twitchMessageSearchCache[messageToSend] = listNode;
-        discordTwitchCacheMap.set(m, listNode);
+        const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
+        bridge.twitchMessageSearchCache[messageToSend] = listNode;
+        bridge.discordTwitchCacheMap.set(m, listNode);
 
         //I'm only grabbing the first index here... this will need to change if we scale up.
-        twitchClient.say(configFile.T2S_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
+        bridge.twitchClient!.say(configFile.T2S_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
@@ -78,14 +74,14 @@ function registerDiscord(): void
 
     const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
     {
-        const messageFromCache = discordTwitchCacheMap.get(m);
+        const messageFromCache = bridge.discordTwitchCacheMap.get(m);
         if(!messageFromCache) return;
 
         //Assuming we found a message we deleted on discord, delete it on twitch too
         for(const i of messageFromCache.data.twitchArray)
         {
             //Cue for deletion instead of deleting the twitch side now
-            if(i.userState == lastUserStateMsg.userState && i.self && !i.userState.botUserStateId)
+            if(i.userState == bridge.lastUserStateMsg.userState && i.self && !i.userState.botUserStateId)
             {
                 i.userState.cueForDelete = true;
                 console.log('The quick brown fox');
@@ -115,7 +111,9 @@ function registerDiscord(): void
             if(!fetchChannel || !fetchChannel.isText())
                 throw new Error('Text channel fetched with ID (' + configFile.T2S_DISCORD_CHANNEL + ') is not a text channel.');
 
-            targetDiscordChannel = fetchChannel as TextChannel;
+            // Cast is there to convert it from any text channel into a TextChannel
+            // we already make sure that it is a text channel, and if it isn't we throw
+            // and error above (:
             bridge.targetDiscordChannel = fetchChannel as TextChannel;
         }
     );
