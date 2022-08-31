@@ -83,7 +83,6 @@ function registerDiscord(): void
             if(i.userState == bridge.lastUserStateMsg.userState && i.self && !i.userState.botUserStateId)
             {
                 i.userState.cueForDelete = true;
-                console.log('The quick brown fox');
             }
 
             else twitchDelete(i);
