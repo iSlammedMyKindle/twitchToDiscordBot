@@ -10,27 +10,15 @@ import configFile from '../../config.json';
  */
 export const genericPromiseError = (error: any) => console.error('Snap, I hit a snag... >.<', error);
 
-interface IBridge
-{
-    MAX_MSG_CACHE: number;
-    currMsgCount: number;
-    targetDiscordChannel: TextChannel | undefined,
-    twitchClient: tmijs.Client | undefined,
-    discordTwitchCacheMap: Map<any, any>
-    twitchMessageSearchCache: { [key: string]: linkedListNode; };
-    messageLinkdListInterface: nodeInterface;
-    lastUserStateMsg: any
-}
-
-const Bridge: IBridge = {
-    MAX_MSG_CACHE: 100,
-    currMsgCount: 0,
-    targetDiscordChannel: undefined,
-    twitchClient: undefined,
-    discordTwitchCacheMap: new Map(),
-    twitchMessageSearchCache: {},
-    messageLinkdListInterface: new nodeInterface(),
-    lastUserStateMsg: null
+const Bridge = {
+    MAX_MSG_CACHE: 100 as number,
+    currMsgCount: 0 as number,
+    targetDiscordChannel: undefined as TextChannel | undefined,
+    twitchClient: undefined as tmijs.Client | undefined,
+    discordTwitchCacheMap: new Map() as Map<any, any>,
+    twitchMessageSearchCache: {} as { [key: string]: linkedListNode },
+    messageLinkdListInterface: new nodeInterface() as nodeInterface,
+    lastUserStateMsg: null as any
 }
 
 
