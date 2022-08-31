@@ -16,26 +16,26 @@ const Bridge = {
     targetDiscordChannel: undefined as TextChannel | undefined,
     twitchClient: undefined as tmijs.Client | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
-    twitchMessageSearchCache: {} as { [key: string]: linkedListNode },
+    twitchMessageSearchCache: {} as { [key: string]: linkedListNode; },
     messageLinkdListInterface: new nodeInterface() as nodeInterface,
     lastUserStateMsg: null as any
-}
+};
 
 
 function manageMsgCache(specificNode?: linkedListNode): number | linkedListNode
 {
-    if (!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE) return Bridge.currMsgCount++;
+    if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE) return Bridge.currMsgCount++;
 
     //Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
-    if (!specificNode)
+    if(!specificNode)
         specificNode = Bridge.messageLinkdListInterface.beginningNode as linkedListNode; //Garbage collection takes care of this, so need to run delete
 
-        Bridge.messageLinkdListInterface.rebindForDelete(specificNode);
+    Bridge.messageLinkdListInterface.rebindForDelete(specificNode);
 
-    if (specificNode.data.twitchArray[0])
-    Bridge.discordTwitchCacheMap.delete(specificNode.data.twitchArray[0]);
+    if(specificNode.data.twitchArray[0])
+        Bridge.discordTwitchCacheMap.delete(specificNode.data.twitchArray[0]);
 
-    if (specificNode.data.discord)
+    if(specificNode.data.discord)
         Bridge.discordTwitchCacheMap.delete(specificNode.data.discord);
 
     return specificNode;
