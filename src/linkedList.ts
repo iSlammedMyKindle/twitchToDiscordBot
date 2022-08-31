@@ -100,9 +100,7 @@ class nodeInterface
 
         if(this.beginningNode == targetNode)
             this.beginningNode = targetNode.next;
-
     }
-
 }
 
 export
