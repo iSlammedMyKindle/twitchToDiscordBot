@@ -7,7 +7,6 @@ const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
 function registerDiscord(): void 
 {
-
     discordClient.on('messageCreate', (m: Message<boolean>) =>
     {
         if(m.author.bot || m.guild === null)
@@ -117,7 +116,6 @@ function registerDiscord(): void
             bridge.targetDiscordChannel = fetchChannel as TextChannel;
         }
     );
-    //When both are logged in, bot commands and behavior also need to be setup, but they can't without each-other being there.
 }
 
 export default registerDiscord;
