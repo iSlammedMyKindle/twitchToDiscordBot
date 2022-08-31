@@ -2,7 +2,6 @@ import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { authenticateTwitch } from '../oauth';
 import { Message } from 'discord.js';
 import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
-const { twitchMessageSearchCache, messageLinkdListInterface, discordTwitchCacheMap } = bridge;
 import tmijs from 'tmi.js';
 import fs from 'fs';
 
@@ -61,10 +60,10 @@ function registerTwitch(): void
 
                     //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
                     const twitchMessage = new twitchMsg(msg, self, userState, channel);
-                    const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
-                    discordTwitchCacheMap.set(twitchMessage, listNode);
-                    discordTwitchCacheMap.set(discordMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(discordMessage, listNode);
 
                     //Count upwards and delete the oldest message if need be
                     manageMsgCache();
@@ -91,8 +90,8 @@ function registerTwitch(): void
                     bridge.lastUserStateMsg = twitchMessage;
 
                     //Adding an node intentionally without a discord message because this is the buffer message.
-                    const listNode = messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
-                    discordTwitchCacheMap.set(twitchMessage, listNode);
+                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
+                    bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                 }
 
                 //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
@@ -100,23 +99,23 @@ function registerTwitch(): void
                 if(bridge.lastUserStateMsg?.userState.cueForDelete)
                 {
                     twitchDelete(bridge.lastUserStateMsg);
-                    manageMsgCache(discordTwitchCacheMap.get(bridge.lastUserStateMsg));
+                    manageMsgCache(bridge.discordTwitchCacheMap.get(bridge.lastUserStateMsg));
                 }
 
                 //If we found the twitch message we wanted to connect, we no longer need it in the cache
-                if(twitchMessageSearchCache[msg])
+                if(bridge.twitchMessageSearchCache[msg])
                 {
 
-                    const existingNode = twitchMessageSearchCache[msg],
+                    const existingNode = bridge.twitchMessageSearchCache[msg],
                         twitchMessage = new twitchMsg(msg, self, userState, channel);
 
                     bridge.lastUserStateMsg = twitchMessage;
 
                     existingNode.data.twitchArray.push(twitchMessage);
-                    discordTwitchCacheMap.set(twitchMessage, existingNode);
+                    bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
 
                     //Remove this from the cache since we found it
-                    delete twitchMessageSearchCache[msg];
+                    delete bridge.twitchMessageSearchCache[msg];
                 }
             }
         });
