@@ -4,7 +4,7 @@ import { Message } from 'discord.js';
 import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
 import tmijs from 'tmi.js';
 import fs from 'fs';
-import { linkedListNode } from 'src/linkedList';
+import { linkedListNode } from '../linkedList';
 
 //Twitch init
 /////////////
