@@ -1,10 +1,10 @@
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { authenticateTwitch } from '../oauth';
 import { Message } from 'discord.js';
+import { linkedListNode } from '../linkedList';
 import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
 import tmijs from 'tmi.js';
 import fs from 'fs';
-import { linkedListNode } from '../linkedList';
 
 //Twitch init
 /////////////
