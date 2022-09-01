@@ -4,6 +4,7 @@ import { Message } from 'discord.js';
 import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
 import tmijs from 'tmi.js';
 import fs from 'fs';
+import { linkedListNode } from 'src/linkedList';
 
 //Twitch init
 /////////////
@@ -51,6 +52,36 @@ function registerTwitch(): void
                 // Good idea to check if it exists or not, dunno.
                 if(!bridge.targetDiscordChannel)
                     throw new Error('Cannot find Discord channel.');
+
+                // If it was a response the following will exist on the object -
+                /**
+                    'reply-parent-display-name': 'testingaccount__',
+                    'reply-parent-msg-body': 'test',
+                    'reply-parent-msg-id': 'f279b175-7100-4486-bb96-c188ea102bbd',
+                    'reply-parent-user-id': '821973125',
+  '                 'reply-parent-user-login': 'testingaccount__',
+                 */
+                // There has to be a parent display name if it is a thread, so good way to check if it is
+                // since tmijs doesn't give us a like userState.isThread() like Discord.JS would >:(.
+                if(userState['reply-parent-display-name'])
+                {
+                    const listNode: linkedListNode | undefined = bridge.discordTwitchCacheMap.get(userState['reply-parent-msg-id']);
+
+                    if(!listNode)
+                        return;
+
+                    // It can throw an error if the message does not exist, if the message is not fetched
+                    // or if we don't have perms to reply
+                    try
+                    {
+                        listNode.data.message?.reply(`[t][${ userState['display-name'] }] ${ msg }`);
+                        return;
+                    }
+                    catch(err: unknown)
+                    {
+                        console.error(`Failed to reply to Discord message (ID: %d)\nError: ${ err }`, listNode.data.message?.id);
+                    }
+                }
 
                 bridge.targetDiscordChannel.send(`[t][${ userState['display-name'] }] ${ msg }`).then((discordMessage: Message<boolean>) =>
                 {
