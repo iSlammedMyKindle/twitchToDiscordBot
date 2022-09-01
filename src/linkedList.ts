@@ -1,9 +1,11 @@
+import { conjoinedMsg } from './messageObjects';
+
 class linkedListNode
 {
 
-    public data: any;
-    public next: any = null;
-    public prev: any = null;
+    public data: conjoinedMsg;
+    public next: any = linkedListNode;
+    public prev: any = linkedListNode;
 
     constructor(data?: any)
     {
@@ -15,7 +17,7 @@ class linkedListNode
      * @param {number} index Grab items that are before this one, or after this one. A postive index takes you forward, and a negative index brings you back. it's possible for a undefined value to exist.
      * @param {boolean} isForward false traverses backwards, true goes forwards
      */
-    getItemAt(index: number = 0, isForward: boolean = true)
+    getItemAt(index: number = 0, isForward: boolean = true): any
     {
 
         if(index === 0) return this;
@@ -66,7 +68,7 @@ class nodeInterface
      * @param {*} data - the data that will be inserted into the new linked list node.
      * @returns The new node that was created, it will also be placed inside `lastCreatedNode`
      */
-    addNode(data?: any)
+    addNode(data?: any): linkedListNode
     {
         const newNode = new linkedListNode(data);
         newNode.prev = this.lastCreatedNode;
@@ -86,7 +88,7 @@ class nodeInterface
     /**
     * Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
     */
-    rebindForDelete(targetNode: any)
+    rebindForDelete(targetNode: any): void
     {
         if(targetNode.next?.prev)
             targetNode.next.prev = targetNode.prev;

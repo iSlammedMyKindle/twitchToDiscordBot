@@ -52,18 +52,6 @@ function registerTwitch(): void
                 if(!bridge.targetDiscordChannel)
                     throw new Error('Cannot find Discord channel.');
 
-                // If it was a response the following will exist on the object -
-                /**
-                    'reply-parent-display-name': 'testingaccount__',
-                    'reply-parent-msg-body': 'test',
-                    'reply-parent-msg-id': 'f279b175-7100-4486-bb96-c188ea102bbd',
-                    'reply-parent-user-id': '821973125',
-  '                 'reply-parent-user-login': 'testingaccount__',
-                 */
-
-                console.log(userState);
-                
-
                 bridge.targetDiscordChannel.send(`[t][${ userState['display-name'] }] ${ msg }`).then((discordMessage: Message<boolean>) =>
                 {
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
@@ -74,6 +62,12 @@ function registerTwitch(): void
 
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                     bridge.discordTwitchCacheMap.set(discordMessage, listNode);
+
+                    // We have to do this, or else we have to cast .id to string, just better practice
+                    // to check if it exists imo, than just assuming; although we could prolly
+                    // assume with 0 issues.
+                    if(twitchMessage.userState.id)
+                        bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, listNode);
 
                     //Count upwards and delete the oldest message if need be
                     manageMsgCache();
