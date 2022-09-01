@@ -50,9 +50,19 @@ function registerTwitch(): void
             {
                 // Good idea to check if it exists or not, dunno.
                 if(!bridge.targetDiscordChannel)
-                {
                     throw new Error('Cannot find Discord channel.');
-                }
+
+                // If it was a response the following will exist on the object -
+                /**
+                    'reply-parent-display-name': 'testingaccount__',
+                    'reply-parent-msg-body': 'test',
+                    'reply-parent-msg-id': 'f279b175-7100-4486-bb96-c188ea102bbd',
+                    'reply-parent-user-id': '821973125',
+  '                 'reply-parent-user-login': 'testingaccount__',
+                 */
+
+                console.log(userState);
+                
 
                 bridge.targetDiscordChannel.send(`[t][${ userState['display-name'] }] ${ msg }`).then((discordMessage: Message<boolean>) =>
                 {
@@ -60,7 +70,7 @@ function registerTwitch(): void
 
                     //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
                     const twitchMessage = new twitchMsg(msg, self, userState, channel);
-                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+                    const listNode = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                     bridge.discordTwitchCacheMap.set(discordMessage, listNode);
@@ -90,7 +100,7 @@ function registerTwitch(): void
                     bridge.lastUserStateMsg = twitchMessage;
 
                     //Adding an node intentionally without a discord message because this is the buffer message.
-                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
+                    const listNode = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                 }
 
