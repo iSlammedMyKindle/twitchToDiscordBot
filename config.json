@@ -1,13 +1,13 @@
 {
-    "T2D_CLIENT_ID": "",
-    "T2D_SECRET": "",
-    "T2D_USER": "",
+    "T2D_CLIENT_ID": "g7c5im9dgby970ik7h3gujweepdhxx",
+    "T2D_SECRET": "h9rzslry00npt77h053tpa7bufh72o",
+    "T2D_USER": "ThisIsABot",
     "T2D_CHANNELS": [
-        ""
+        "ace2"
     ],
     "T2D_SCOPE": "chat:read chat:edit channel:moderate",
     "T2D_REDIRECT_URI": "http://localhost:3000",
-    "T2D_DISCORD_CHANNEL": "",
-    "T2D_DISCORD_TOKEN": "",
+    "T2D_DISCORD_CHANNEL": "826045539640148018",
+    "T2D_DISCORD_TOKEN": "MTAwNTMxMjI1MTE2ODgyNTM4NA.G47g32.QGOoZbwT9O8zDcfJrz4e2dQhn4V6aMgYUXXAqc",
     "T2D_DEV_SAVE_TOKEN": true
 }

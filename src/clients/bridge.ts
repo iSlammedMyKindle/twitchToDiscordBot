@@ -15,6 +15,7 @@ const Bridge = {
     currMsgCount: 0 as number,
     targetDiscordChannel: undefined as TextChannel | undefined,
     twitchClient: undefined as tmijs.Client | undefined,
+    // Query is either a Discord message, a twitchMsg object, or a Discord/Twitch message ID.
     discordTwitchCacheMap: new Map() as Map<Message | PartialMessage | twitchMsg | string, linkedListNode>,
     twitchMessageSearchCache: {} as { [key: string]: linkedListNode; },
     messageLinkedListInterface: new nodeInterface() as nodeInterface,

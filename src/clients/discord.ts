@@ -63,10 +63,39 @@ function registerDiscord(): void
         const listNode: linkedListNode = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(m));
         bridge.twitchMessageSearchCache[messageToSend] = listNode;
         bridge.discordTwitchCacheMap.set(m, listNode);
+        bridge.discordTwitchCacheMap.set(m.id, listNode);
+
+        // if the message is a reply
+        if(m.type === 'REPLY')
+        {
+            // fetchReference will fetch the message that was replied to.
+            // Somewhere here is going wrong, we want to get the
+            // replied message's (the fetchReference)'s Twitch message object
+            // although the ID is alwasys weirdly wrong?
+            const fetchedReplyMessage: Message<boolean> = await m.fetchReference();
+            const replyNode: linkedListNode | undefined = bridge.discordTwitchCacheMap.get(fetchedReplyMessage.id);
+            
+            console.log(replyNode);
+            console.log(replyNode?.data.twitchArray[0]);
+
+            const twitchMsgData = replyNode?.data.twitchArray[0];
+            console.log(twitchMsgData?.userState['id'] == replyNode?.data.twitchArray[0].userState['id']);
+            // Look at Twitch docs, this is a raw statement cause TMI is bad (:.
+            // This just replies to our message using a Twitch ID.
+            // THIS IS ALWAYS BEHIND CAUSE TMI IS BAD.
+            // THIS WILL NOT WORKY YET-Y
+            if(twitchMsgData?.userState.id && !bridge.lastUserStateMsg.userState.botUserStateId)
+                bridge.twitchClient?.raw(`@reply-parent-msg-id=${ twitchMsgData!.userState.id } PRIVMSG ${ configFile.T2D_CHANNELS[0] } :${ messageToSend }`);
+            else
+                bridge.twitchClient?.raw(`@reply-parent-msg-id=${ twitchMsgData!.userState.botUserStateId || twitchMsgData!.userState.id } PRIVMSG ${ configFile.T2D_CHANNELS[0] } :${ messageToSend }`);
+
+            manageMsgCache();
+            return;
+        }
 
         //I'm only grabbing the first index here... this will need to change if we scale up.
-        bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
-
+        const sentmessage = await bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
+        console.log(sentmessage);
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
     });
