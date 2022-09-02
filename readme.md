@@ -1,12 +1,12 @@
 # Twitch To Discord
 
-Welecome! This is one of the scraps that are helping to run my discord server. The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
+Welecome! This is one of the scraps that are helping to run my Discord server. The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
 
 This file is designed to provided an overview of how to get the bot setup yourself on a custom environment.
 
-## Setup - twitch side
+## Setup - Twitch side
 
-1. To start on the twitch side, first navigate to [the twitch console](https://dev.twitch.tv/console)
+1. To start on the Twitch side, first navigate to [the Twitch console](https://dev.twitch.tv/console)
 1. Click on the "Applications" tab at the top.
 1. From here, you would click "Register Your application". It needs a name that hasn't been used on a bot before, set the `T2D_USER` in config.json to your chosen application name.
 1. After the bot is created, go ahead and click "manage" on the new application, you will see options for `Client ID` and `Client Secret`. Create the the secret, and store it for later. Client ID will always be the same, but save this as well. These items in particular should be stored in config.json as `T2D_CLIENT_ID` and `T2D_SECRET`
@@ -30,11 +30,11 @@ Another note is that if you try to deploy on a web server outside your local mac
 1. In the oAuth2 menu, select URL Generator; check `bot`, then in the second box, check "Manage messages", "Send Message", and "Read Messages"
 1. copy the link and paste it into your browser; from here you should be able to add the bot to your test server. (Save this link for later, you'll need it to add it to other places when required)
 
-## Setting up a discord channel
+## Setting up a Discord channel
 
-On your discord server, the channel that will reflect twtich needs to have permissions disabled on it. Twitch is directly based on an IRC standard, which means things like threads are not going to be supported.
+On your Discord server, the channel that will reflects Twitch chat needs to have permissions disabled on it. Twitch is directly based on an IRC standard, which means things like threads are not going to be supported.
 
-Create the channel, and then copy it's discord ID (enable developer settings in your personal discord settings to make this work.) You can also find the discord ID in the URL of your browser if discord is being used there (it will be the last set of numbers in the link). Place the channel ID inside `config.js` -> `T2D_DISCORD_CHANNEL`.
+Create the channel, and then copy it's Discord ID (enable developer settings in your personal Discord settings to make this work.) You can also find the Discord ID in the URL of your browser if Discord is being used there (it will be the last set of numbers in the link). Place the channel ID inside `config.js` -> `T2D_DISCORD_CHANNEL`.
 
 ## `T2S_DEV_SAVE_TOKEN`
 
@@ -42,4 +42,4 @@ You'll need this setting toggled to true if you are just developing the bot. Twi
 
 ## Launching the bot
 
-Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with twitch. Once that's finished, the bot should be up and running! If you set `T2D_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
+Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with Twitch. Once that's finished, the bot should be up and running! If you set `T2D_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
