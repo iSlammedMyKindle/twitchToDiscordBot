@@ -4,6 +4,7 @@ import { Message } from 'discord.js';
 import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
 import tmijs from 'tmi.js';
 import fs from 'fs';
+import { linkedListNode } from 'src/linkedList';
 
 //Twitch init
 /////////////
@@ -20,7 +21,7 @@ function registerTwitch(): void
         //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
         //If we have the save token flag enabled, save this to "devTwitchToken"
         if(!skipTokenSave && configFile.T2D_DEV_SAVE_TOKEN)
-            fs.writeFile('./devTwitchToken', access_token, null, error =>
+            fs.writeFile('./devTwitchToken', access_token, null, (error: NodeJS.ErrnoException | null) =>
             {
                 if(error) console.error('I hit a snag...', error);
             });
@@ -59,8 +60,8 @@ function registerTwitch(): void
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
                     //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
-                    const twitchMessage = new twitchMsg(msg, self, userState, channel);
-                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+                    const twitchMessage: twitchMsg = new twitchMsg(msg, self, userState, channel);
+                    const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                     bridge.discordTwitchCacheMap.set(discordMessage, listNode);
@@ -86,11 +87,11 @@ function registerTwitch(): void
                     console.log('Got the userstate message with no ID -_-');
 
                     //[trailing bot message] This is a special method of recording the last twitch message because we need to have a method of removing this message after the fact
-                    const twitchMessage = new twitchMsg(msg, self, userState, channel);
+                    const twitchMessage: twitchMsg = new twitchMsg(msg, self, userState, channel);
                     bridge.lastUserStateMsg = twitchMessage;
 
                     //Adding an node intentionally without a discord message because this is the buffer message.
-                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
+                    const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                 }
 
@@ -106,8 +107,8 @@ function registerTwitch(): void
                 if(bridge.twitchMessageSearchCache[msg])
                 {
 
-                    const existingNode = bridge.twitchMessageSearchCache[msg],
-                        twitchMessage = new twitchMsg(msg, self, userState, channel);
+                    const existingNode: linkedListNode = bridge.twitchMessageSearchCache[msg],
+                        twitchMessage: twitchMsg = new twitchMsg(msg, self, userState, channel);
 
                     bridge.lastUserStateMsg = twitchMessage;
 

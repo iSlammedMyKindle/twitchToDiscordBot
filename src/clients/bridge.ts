@@ -8,8 +8,10 @@ import configFile from '../../config.json';
  * If an error happens either on twitch or discord, print the thing
  * @param {*} error 
  */
-export const genericPromiseError = (error: any) => console.error('Snap, I hit a snag... >.<', error);
+// eslint-disable-next-line no-unused-vars
+export const genericPromiseError: (_error: any) => void = (error: any) => console.error('Snap, I hit a snag... >.<', error);
 
+// eslint-disable-next-line @typescript-eslint/typedef
 const Bridge = {
     MAX_MSG_CACHE: 100 as number,
     currMsgCount: 0 as number,

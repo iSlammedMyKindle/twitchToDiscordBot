@@ -68,7 +68,7 @@ class nodeInterface
      */
     addNode(data?: any)
     {
-        const newNode = new linkedListNode(data);
+        const newNode: linkedListNode = new linkedListNode(data);
         newNode.prev = this.lastCreatedNode;
 
         if(this.lastCreatedNode)

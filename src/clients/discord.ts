@@ -1,9 +1,9 @@
-import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
+import { AnyChannel, Client, Collection, Message, MessageAttachment, PartialMessage, TextChannel } from 'discord.js';
 import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
 import bridge, { configFile, genericPromiseError, manageMsgCache, twitchDelete } from './bridge';
 
-const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
+const discordClient: Client<boolean> = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
 function registerDiscord(): void 
 {
@@ -55,7 +55,7 @@ function registerDiscord(): void
 
         //Include attachments inside the message if they are present on discord
         if(m.attachments?.size)
-            finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
+            finalMessage += ' ' + [...m.attachments].map((e: [String, MessageAttachment]) => e[1].url).join(' ');
 
         const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
@@ -71,9 +71,10 @@ function registerDiscord(): void
         manageMsgCache();
     });
 
-    const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
+    // eslint-disable-next-line no-unused-vars
+    const discordOnMesgDel: (m: Message<boolean> | PartialMessage) => void = (m: Message<boolean> | PartialMessage): void =>
     {
-        const messageFromCache = bridge.discordTwitchCacheMap.get(m);
+        const messageFromCache: any = bridge.discordTwitchCacheMap.get(m);
         if(!messageFromCache) return;
 
         //Assuming we found a message we deleted on discord, delete it on twitch too

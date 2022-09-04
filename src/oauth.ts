@@ -11,11 +11,12 @@ interface IParams
     client_secret: string;
 }
 
-const listenForTwitch = (url: string) => new Promise((resolve, reject) =>
+// eslint-disable-next-line no-unused-vars
+const listenForTwitch: (url: string) => Promise<unknown> = (url: string) => new Promise((resolve: (value: unknown) => void, reject: (value: unknown) => void) =>
 {
 
     //Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
-    const tempServer = http.createServer((req, res) =>
+    const tempServer: http.Server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) =>
     {
         res.statusCode = 200;
         res.write('<h1>Hi there, the app should be authenticated now!</h1>');
@@ -25,12 +26,12 @@ const listenForTwitch = (url: string) => new Promise((resolve, reject) =>
     });
 
     tempServer.listen(3000);
-    tempServer.on('error', e => reject(e));
+    tempServer.on('error', (e: Error) => reject(e));
 });
 
 async function authenticateTwitch(params: IParams): Promise<unknown>
 {
-    const targetUrl = 'https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
+    const targetUrl: string = 'https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +
         '&redirect_uri=' + params.redirect_uri;
 
@@ -45,16 +46,17 @@ async function authenticateTwitch(params: IParams): Promise<unknown>
     }
 
     const oauthParams: any = await listenForTwitch(params.redirect_uri);
-    return new Promise((resolve, reject) =>
+    // eslint-disable-next-line no-unused-vars
+    return new Promise((resolve: (value: unknown) => void, reject: (value: unknown) => void) =>
     {
-        const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
+        const oauthReq: http.ClientRequest = https.request('https://id.twitch.tv/oauth2/token', {
             headers: { 'Content-Type': 'application/json' },
             method: 'POST',
-        }, res =>
+        }, (res: http.IncomingMessage) =>
         {
             const resBuffer: any[] = [];
 
-            res.on('data', chunk => resBuffer.push(chunk));
+            res.on('data', (chunk: any) => resBuffer.push(chunk));
             res.on('end', () =>
             {
                 try
