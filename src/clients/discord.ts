@@ -1,9 +1,32 @@
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
 import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
-import bridge, { configFile, genericPromiseError, manageMsgCache, twitchDelete } from './bridge';
+import bridge, { configFile, manageMsgCache, twitchDelete } from './bridge';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
+
+function chunkMessage(message: string = '', contSymbol: string = '[...]')
+{
+    const res = [''];
+    let resIndex = 0;
+
+    for(let i = 0; i < message.length; i++)
+    {
+
+        if(res[resIndex].length == 490)
+        {
+            resIndex++;
+            res[resIndex] = '';
+        }
+
+        //If our current chunk comes after the first, and the current string is blank, add the continue symbol
+        if(resIndex && !res[resIndex]) res[resIndex] += contSymbol;
+
+        res[resIndex] += message[i];
+    }
+
+    return res;
+}
 
 function registerDiscord(): void 
 {
@@ -61,11 +84,23 @@ function registerDiscord(): void
 
         //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
         const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
-        bridge.twitchMessageSearchCache[messageToSend] = listNode;
         bridge.discordTwitchCacheMap.set(m, listNode);
 
         //I'm only grabbing the first index here... this will need to change if we scale up.
-        bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], messageToSend).then(undefined, genericPromiseError);
+        const messagesToSend = chunkMessage(messageToSend);
+        let currIndex = 0;
+            const recursiveSend = ()=>
+            {
+                if(currIndex < messagesToSend.length)
+                bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], messagesToSend[currIndex]).then(()=>
+                {
+                    bridge.twitchMessageSearchCache[messagesToSend[currIndex]] = listNode;
+                    currIndex++;
+                    recursiveSend();
+                });
+            }
+
+            recursiveSend();
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();

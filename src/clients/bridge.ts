@@ -36,8 +36,9 @@ function manageMsgCache(specificNode?: linkedListNode): null | linkedListNode
 
     Bridge.messageLinkdListInterface.rebindForDelete(specificNode);
 
-    if(specificNode.data.twitchArray[0])
-        Bridge.discordTwitchCacheMap.delete(specificNode.data.twitchArray[0]);
+    if(specificNode.data.twitchArray.length)
+        for(const item of specificNode.data.twitchArray)
+            Bridge.discordTwitchCacheMap.delete(item);
 
     if(specificNode.data.discord)
         Bridge.discordTwitchCacheMap.delete(specificNode.data.discord);

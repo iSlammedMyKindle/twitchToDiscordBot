@@ -117,6 +117,9 @@ function registerTwitch(): void
                     //Remove this from the cache since we found it
                     delete bridge.twitchMessageSearchCache[msg];
                 }
+
+                const asdf = bridge.discordTwitchCacheMap;
+                console.log(asdf);
             }
         });
     }
