@@ -36,7 +36,7 @@ On your Discord server, the channel that will reflects Twitch chat needs to have
 
 Create the channel, and then copy it's Discord ID (enable developer settings in your personal Discord settings to make this work.) You can also find the Discord ID in the URL of your browser if Discord is being used there (it will be the last set of numbers in the link). Place the channel ID inside `config.js` -> `T2D_DISCORD_CHANNEL`.
 
-## `T2S_DEV_SAVE_TOKEN`
+## `T2D_DEV_SAVE_TOKEN`
 
 You'll need this setting toggled to true if you are just developing the bot. Twitch only offers up to 50 tokens at a given time, so this will prevent you from maxing that out quickly!
 
