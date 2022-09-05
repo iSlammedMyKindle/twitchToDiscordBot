@@ -92,24 +92,30 @@ function registerDiscord(): void
         for(const msg of chunkedTwitchMessages)
             bridge.twitchMessageSearchCache[msg] = listNode;
 
-        let currIndex = 0;
-            const recursiveSend = ()=>
-            {
-                if(currIndex < chunkedTwitchMessages.length)
-                bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(()=>
+        let currIndex: number = 0;
+        const recursiveSend = () =>
+        {
+            if(currIndex < chunkedTwitchMessages.length)
+                bridge.chatClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(() =>
                 {
                     currIndex++;
                     //tmijs does this in their own version of sending multiple messages... therefore we must also follow this jank method
-                    setTimeout(()=>recursiveSend(), 250);
+                    setTimeout(() => recursiveSend(), 250);
                 });
-            }
+        };
 
-            recursiveSend();
+        recursiveSend();
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
     });
 
+    /**
+     * Current bugged, will always throw an error due to us never getting the twitchObj bound to the linkedListNode.
+     * No clue why, but aye! Not my issue ATM. Just focusing on the migration to Pwurple. Someone else (kindle) please solve <3
+     * @param m
+     * @returns 
+     */
     const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
     {
         const messageFromCache = bridge.discordTwitchCacheMap.get(m);
@@ -118,11 +124,9 @@ function registerDiscord(): void
         //Assuming we found a message we deleted on discord, delete it on twitch too
         for(const i of messageFromCache.data.twitchArray)
         {
-            //Cue for deletion instead of deleting the twitch side now
-            if(i.userState == bridge.lastUserStateMsg.userState && i.self && !i.userState.botUserStateId)
-                i.userState.cueForDelete = true;
-
-            else twitchDelete(i);
+            console.log('deleted message');
+            console.log(i);
+            twitchDelete(i);
         }
 
         //Delete this conjoined message from all cache

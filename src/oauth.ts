@@ -2,6 +2,7 @@ import http from 'http';
 import https from 'https';
 import open from 'open';
 import { URL } from 'url';
+import hydra, { IExportOBJ } from '@acelikesghosts/hydra';
 
 interface IParams
 {
@@ -9,6 +10,52 @@ interface IParams
     scope: string,
     redirect_uri: string;
     client_secret: string;
+}
+
+/**
+ * {
+    "accessToken": "",
+    "expiresIn": 14405,
+    "refreshToken": "",
+    "scope": [
+        "channel:moderate",
+        "chat:edit",
+        "chat:read"
+    ],
+    "tokenType": "bearer"
+}
+ */
+interface IResponse 
+{
+    access_token: string,
+    expires_in: number,
+    refresh_token: string,
+    scope: string[],
+    token_type: string;
+}
+
+/**
+ * @description Change our response from snake case to camel case.
+ * @param res 
+ * @returns 
+ */
+function fixResponse(res: IResponse): { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string; }
+{
+    const hydr: IExportOBJ = hydra(res) as IExportOBJ;
+    hydr.set('accessToken', res.access_token);
+    hydr.set('expiresIn', res.expires_in);
+    hydr.set('refreshToken', res.refresh_token);
+    hydr.set('scope', res.scope);
+    hydr.set('tokenType', res.token_type);
+
+    const obj: any = hydr.value();
+    delete obj['access_token'];
+    delete obj['expires_in'];
+    delete obj['refresh_token'];
+    delete obj['scope'];
+    delete obj['token_type'];
+
+    return hydr.value() as any;
 }
 
 const listenForTwitch = (url: string) => new Promise((resolve, reject) =>
@@ -59,7 +106,7 @@ async function authenticateTwitch(params: IParams): Promise<unknown>
             {
                 try
                 {
-                    resolve(JSON.parse(Buffer.concat(resBuffer).toString()));
+                    resolve(fixResponse(JSON.parse(Buffer.concat(resBuffer).toString())));
                 }
                 catch(e)
                 {

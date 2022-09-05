@@ -1,7 +1,7 @@
 import { TextChannel } from 'discord.js';
 import { linkedListNode, nodeInterface } from '../linkedList';
 import { twitchMsg } from '../messageObjects';
-import tmijs from 'tmi.js';
+import { ChatClient } from '@twurple/chat';
 import configFile from '../../config.json';
 
 /**
@@ -11,14 +11,13 @@ import configFile from '../../config.json';
 export const genericPromiseError = (error: any) => console.error('Snap, I hit a snag... >.<', error);
 
 const Bridge = {
+    chatClient: null as ChatClient | null,
     MAX_MSG_CACHE: 100 as number,
     currMsgCount: 0 as number,
     targetDiscordChannel: undefined as TextChannel | undefined,
-    twitchClient: undefined as tmijs.Client | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
     twitchMessageSearchCache: {} as { [key: string]: linkedListNode; },
     messageLinkdListInterface: new nodeInterface() as nodeInterface,
-    lastUserStateMsg: null as any
 };
 
 
@@ -52,7 +51,7 @@ function manageMsgCache(specificNode?: linkedListNode): null | linkedListNode
 */
 function twitchDelete(twitchObj: twitchMsg): void
 {
-    Bridge.twitchClient!.deletemessage(twitchObj.channel, twitchObj.userState.botUserStateId || twitchObj.userState.id).then(undefined, genericPromiseError);
+    Bridge.chatClient!.deleteMessage(twitchObj.channel, twitchObj.userState.id).then(undefined, genericPromiseError);
 }
 
 export default Bridge;
