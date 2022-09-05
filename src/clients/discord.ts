@@ -86,17 +86,21 @@ function registerDiscord(): void
         const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
         bridge.discordTwitchCacheMap.set(m, listNode);
 
-        //I'm only grabbing the first index here... this will need to change if we scale up.
-        const messagesToSend = chunkMessage(messageToSend);
+        //COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
+        //We need consistent keys in order to properly map all twitch chunks back to the original discord message
+        const chunkedTwitchMessages = chunkMessage(messageToSend);
+        for(const msg of chunkedTwitchMessages)
+            bridge.twitchMessageSearchCache[msg] = listNode;
+
         let currIndex = 0;
             const recursiveSend = ()=>
             {
-                if(currIndex < messagesToSend.length)
-                bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], messagesToSend[currIndex]).then(()=>
+                if(currIndex < chunkedTwitchMessages.length)
+                bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(()=>
                 {
-                    bridge.twitchMessageSearchCache[messagesToSend[currIndex]] = listNode;
                     currIndex++;
-                    recursiveSend();
+                    //tmijs does this in their own version of sending multiple messages... therefore we must also follow this jank method
+                    setTimeout(()=>recursiveSend(), 250);
                 });
             }
 
@@ -116,9 +120,7 @@ function registerDiscord(): void
         {
             //Cue for deletion instead of deleting the twitch side now
             if(i.userState == bridge.lastUserStateMsg.userState && i.self && !i.userState.botUserStateId)
-            {
                 i.userState.cueForDelete = true;
-            }
 
             else twitchDelete(i);
         }

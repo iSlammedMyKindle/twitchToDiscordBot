@@ -75,12 +75,10 @@ function registerTwitch(): void
             {
 
                 //Record that last given userstate ID (specific to bots)
+                //Set the message to contain the special value: botUserStateId
                 if(userState.id)
-                {
-                    //Set the message to contain the special value: botUserStateId
                     bridge.lastUserStateMsg.userState.botUserStateId = userState.id;
-                }
-                //TODO: this is a paradox you need to solve - find a way to delete the first message that isn't the buffer; the buffer message is *not* in the message cache.
+
                 else
                 {
                     console.log('Got the userstate message with no ID -_-');
@@ -117,9 +115,6 @@ function registerTwitch(): void
                     //Remove this from the cache since we found it
                     delete bridge.twitchMessageSearchCache[msg];
                 }
-
-                const asdf = bridge.discordTwitchCacheMap;
-                console.log(asdf);
             }
         });
     }
