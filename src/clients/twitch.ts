@@ -131,7 +131,8 @@ function registerTwitch(): void
         scope: configFile.T2D_SCOPE,
         redirect_uri: configFile.T2D_REDIRECT_URI,
         client_id: configFile.T2D_CLIENT_ID,
-        client_secret: configFile.T2D_SECRET
+        client_secret: configFile.T2D_SECRET,
+        use_https: !configFile.T2D_DEV_SAVE_TOKEN //If we don't save a dev token, we assume we're in prod mode, and require the use of https.
     }).then(loginToTwitch as any);
 }
 
