@@ -39,7 +39,7 @@ interface IResponse
  * @param res 
  * @returns 
  */
-function fixResponse(res: IResponse): { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string; }
+function fixResponse(res: IResponse): { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string }
 {
     const hydr: IExportOBJ = hydra(res) as IExportOBJ;
     hydr.set('accessToken', res.access_token);
@@ -75,7 +75,7 @@ const listenForTwitch = (url: string) => new Promise((resolve, reject) =>
     tempServer.on('error', e => reject(e));
 });
 
-async function authenticateTwitch(params: IParams): Promise<unknown>
+async function authenticateTwitch(params: IParams): Promise<{ accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string }>
 {
     const targetUrl = 'https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +

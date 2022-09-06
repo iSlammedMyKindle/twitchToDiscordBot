@@ -4,7 +4,7 @@ import { authenticateTwitch } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
-import { TwitchPrivateMessage } from '@twurple/chat/lib/commands/TwitchPrivateMessage';
+import { PrivateMessage } from '@twurple/chat';
 import { ChatClient } from '@twurple/chat/lib';
 
 
@@ -19,7 +19,7 @@ function registerTwitch(): void
     async function loginToTwitch(): Promise<void>
     {
         //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
-        let tokenData: any;
+        let tokenData: { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string };
 
         try
         {
@@ -27,7 +27,7 @@ function registerTwitch(): void
         }
         catch (error: unknown)
         {
-            const res: any = await authenticateTwitch({
+            const res: { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string } = await authenticateTwitch({
                 scope: configFile.T2D_SCOPE,
                 redirect_uri: configFile.T2D_REDIRECT_URI,
                 client_id: configFile.T2D_CLIENT_ID,
@@ -47,7 +47,7 @@ function registerTwitch(): void
                 'clientSecret': configFile.T2D_SECRET,
                 onRefresh: async newTokenData => await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8')
             },
-            tokenData
+            tokenData as any
         );
 
         bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
@@ -67,7 +67,7 @@ function registerTwitch(): void
         });
 
         // Using anonChatClient so that we recieve the messages we send, yknow.
-        bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: TwitchPrivateMessage) =>
+        bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) =>
         {
             if (!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
