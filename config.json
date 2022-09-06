@@ -8,5 +8,11 @@
     "T2D_SCOPE": "chat:read chat:edit channel:moderate",
     "T2D_REDIRECT_URI": "http://localhost:3000",
     "T2D_DISCORD_CHANNEL": "",
-    "T2D_DISCORD_TOKEN": ""
+    "T2D_DISCORD_TOKEN": "",
+    "T2D_HTTPS": {
+        "enabled": false,
+        "keyPath": "./sslCertificate/twitchToDiscord.pass.key",
+        "certPath": "./sslCertificate/twitchToDiscord.crt",
+        "passphrase": "1234"
+    }
 }

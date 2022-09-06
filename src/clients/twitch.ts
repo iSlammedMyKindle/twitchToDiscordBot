@@ -31,7 +31,8 @@ function registerTwitch(): void
                 scope: configFile.T2D_SCOPE,
                 redirect_uri: configFile.T2D_REDIRECT_URI,
                 client_id: configFile.T2D_CLIENT_ID,
-                client_secret: configFile.T2D_SECRET
+                client_secret: configFile.T2D_SECRET,
+                use_https: configFile.T2D_HTTPS.enabled
             });
 
             await fs.writeFile('./tokens.json', JSON.stringify(res));

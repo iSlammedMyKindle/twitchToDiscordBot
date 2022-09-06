@@ -1,9 +1,19 @@
-import http, { RequestListener } from 'http';
 import https from 'https';
 import open from 'open';
+import fs from 'fs';import hydra, { IExportOBJ } from '@acelikesghosts/hydra';
+import http, { RequestListener } from 'http';
+import { configFile } from './clients/bridge';
 import { URL } from 'url';
-import hydra, { IExportOBJ } from '@acelikesghosts/hydra';
-import fs from 'fs';
+
+interface request {
+    url: string
+}
+
+interface response {
+    statusCode: number,
+    write: Function,
+    end: Function
+}
 
 interface IParams
 {
@@ -60,17 +70,6 @@ function fixResponse(res: IResponse): { accessToken: string, expiresIn: number, 
     return hydr.value() as any;
 }
 
-const listenForTwitch = (url: string) => new Promise((resolve, reject) =>
-interface request {
-    url: string
-}
-
-interface response {
-    statusCode: number,
-    write: Function,
-    end: Function
-}
-
 const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise((resolve, reject) =>
 {
 
@@ -85,9 +84,9 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
     }
 
     const tempServer = useHttps ? https.createServer({
-        key: fs.readFileSync('./sslCertificate/twitchToDiscord.pass.key'),
-        cert: fs.readFileSync('./sslCertificate/twitchToDiscord.crt'),
-        passphrase:'1234'
+        key: fs.readFileSync(configFile.T2D_HTTPS.keyPath),
+        cert: fs.readFileSync(configFile.T2D_HTTPS.certPath),
+        passphrase: configFile.T2D_HTTPS.passphrase ?? ''
     }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
 
     tempServer.listen(3000);
@@ -105,7 +104,7 @@ async function authenticateTwitch(params: IParams): Promise<{ accessToken: strin
     {
         open(targetUrl);
     }
-    catch(e)
+    catch (e)
     {
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
@@ -127,7 +126,7 @@ async function authenticateTwitch(params: IParams): Promise<{ accessToken: strin
                 {
                     resolve(fixResponse(JSON.parse(Buffer.concat(resBuffer).toString())));
                 }
-                catch(e)
+                catch (e)
                 {
                     //We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);
