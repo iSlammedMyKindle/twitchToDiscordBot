@@ -4,8 +4,8 @@ import { authenticateTwitch } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
-import { ChatClient } from '@twurple/chat';
 import { TwitchPrivateMessage } from '@twurple/chat/lib/commands/TwitchPrivateMessage';
+import { ChatClient } from '@twurple/chat/lib';
 
 
 //Twitch init
@@ -25,7 +25,7 @@ function registerTwitch(): void
         {
             tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
         }
-        catch(error: unknown)
+        catch (error: unknown)
         {
             const res: any = await authenticateTwitch({
                 scope: configFile.T2D_SCOPE,
@@ -50,22 +50,29 @@ function registerTwitch(): void
             tokenData
         );
 
-        bridge.chatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
+        bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
+        bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [configFile.T2D_CHANNELS[0]] });
 
-        bridge.chatClient.connect().then(() =>
+        bridge.twitch.authChatClient.connect().then(() =>
         {
-            console.log('Twitch bot is live! Sending a buffer message...', configFile.T2D_USER);
+            console.log('AUTHED: Twitch bot is live! Sending a buffer message...', configFile.T2D_USER);
             //Send a buffer message that allows us to track messages being sent as the twitch bot
             //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-            bridge.chatClient!.say(configFile.T2D_CHANNELS[0], 'twitch bot buffer message!');
+            bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], 'twitch bot buffer message!');
         });
 
-        bridge.chatClient.onMessage((channel: string, user: string, message: string, userState: TwitchPrivateMessage) =>
+        bridge.twitch.anonChatClient.connect().then(() => 
         {
-            if(!bridge.targetDiscordChannel)
+            console.log('Anon Twitch Client has connected');
+        });
+
+        // Using anonChatClient so that we recieve the messages we send, yknow.
+        bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: TwitchPrivateMessage) =>
+        {
+            if (!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
-            bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
+            bridge.targetDiscordChannel.send(`[t][${user}] ${message}`).then((discordMessage: Message<boolean>) =>
             {
                 //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
@@ -81,7 +88,7 @@ function registerTwitch(): void
             }, genericPromiseError);
 
 
-            if(!userState.id)
+            if (!userState.id)
             {
                 console.log('Recieved a message without an ID.');
 
@@ -93,7 +100,7 @@ function registerTwitch(): void
                 bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
             }
 
-            if(bridge.twitchMessageSearchCache[message])
+            if (bridge.twitchMessageSearchCache[message])
             {
                 const existingNode = bridge.twitchMessageSearchCache[message],
                     twitchMessage = new twitchMsg(message, true, userState, channel);

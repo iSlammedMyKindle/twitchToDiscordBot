@@ -10,8 +10,13 @@ import configFile from '../../config.json';
  */
 export const genericPromiseError = (error: any) => console.error('Snap, I hit a snag... >.<', error);
 
+const Twitch = {
+    authChatClient: null as ChatClient | null,
+    anonChatClient: null as ChatClient | null
+};
+
 const Bridge = {
-    chatClient: null as ChatClient | null,
+    twitch: Twitch,
     MAX_MSG_CACHE: 100 as number,
     currMsgCount: 0 as number,
     targetDiscordChannel: undefined as TextChannel | undefined,
@@ -51,7 +56,7 @@ function manageMsgCache(specificNode?: linkedListNode): null | linkedListNode
 */
 function twitchDelete(twitchObj: twitchMsg): void
 {
-    Bridge.chatClient!.deleteMessage(twitchObj.channel, twitchObj.userState.id).then(undefined, genericPromiseError);
+    Bridge.twitch.authChatClient!.deleteMessage(twitchObj.channel, twitchObj.userState.id).then(undefined, genericPromiseError);
 }
 
 export default Bridge;
