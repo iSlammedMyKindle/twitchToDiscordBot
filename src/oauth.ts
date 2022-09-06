@@ -48,9 +48,9 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
 
 async function authenticateTwitch(params: IParams): Promise<unknown>
 {
-    const targetUrl = 'https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
+    const targetUrl = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +
-        '&redirect_uri=' + params.redirect_uri;
+        '&redirect_uri=' + params.redirect_uri);
 
     console.log('Trying to open this link in a browser ', targetUrl);
     try
