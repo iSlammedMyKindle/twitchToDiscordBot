@@ -12,7 +12,6 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
 
     for(let i = 0; i < message.length; i++)
     {
-
         if(res[resIndex].length == 490)
         {
             resIndex++;
@@ -93,10 +92,10 @@ function registerDiscord(): void
             bridge.twitchMessageSearchCache[msg] = listNode;
 
         let currIndex: number = 0;
-        const recursiveSend = () =>
+        const recursiveSend = (): void =>
         {
             if(currIndex < chunkedTwitchMessages.length)
-                bridge.chatClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(() =>
+                bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(() =>
                 {
                     currIndex++;
                     //tmijs does this in their own version of sending multiple messages... therefore we must also follow this jank method
@@ -123,11 +122,7 @@ function registerDiscord(): void
 
         //Assuming we found a message we deleted on discord, delete it on twitch too
         for(const i of messageFromCache.data.twitchArray)
-        {
-            console.log('deleted message');
-            console.log(i);
             twitchDelete(i);
-        }
 
         //Delete this conjoined message from all cache
         manageMsgCache(messageFromCache);

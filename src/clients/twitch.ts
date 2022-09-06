@@ -71,7 +71,9 @@ function registerTwitch(): void
         {
             if (!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
-
+            
+            // We should (hopefully) not get stuck in a loop here due to our
+            // checks in discord.ts
             bridge.targetDiscordChannel.send(`[t][${user}] ${message}`).then((discordMessage: Message<boolean>) =>
             {
                 //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
