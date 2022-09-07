@@ -61,13 +61,10 @@ function registerTwitch(): void
         bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
         bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [configFile.T2D_CHANNELS[0]] });
 
+        //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
         bridge.twitch.authChatClient.connect().then(() =>
-        {
-            console.log('AUTHED: Twitch bot is live! Sending a buffer message...', configFile.T2D_USER);
-            //Send a buffer message that allows us to track messages being sent as the twitch bot
-            //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-            bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], 'twitch bot buffer message!');
-        });
+            console.log('Authenticated Twitch Client has connected')
+        );
 
         bridge.twitch.anonChatClient.connect().then(() =>
             console.log('Anon Twitch Client has connected')
@@ -79,35 +76,25 @@ function registerTwitch(): void
             if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
-            // We should (hopefully) not get stuck in a loop here due to our
-            // checks in discord.ts
-            bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
-            {
-                //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
+            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+                // We should (hopefully) not get stuck in a loop here due to our
+                // checks in discord.ts
+                bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
+                {
+                    //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
-                //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
-                const twitchMessage = new twitchMsg(message, false, userState, channel);
-                const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+                    //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
+                    const twitchMessage = new twitchMsg(message, false, userState, channel);
+                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
-                bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
-                bridge.discordTwitchCacheMap.set(discordMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(discordMessage, listNode);
 
-                //Count upwards and delete the oldest message if need be
-                manageMsgCache();
-            }, genericPromiseError);
+                    //Count upwards and delete the oldest message if need be
+                    manageMsgCache();
+                }, genericPromiseError);
 
-
-            if(!userState.id)
-            {
-                console.log('Recieved a message without an ID.');
-
-                //[trailing bot message] This is a special method of recording the last twitch message because we need to have a method of removing this message after the fact
-                const twitchMessage = new twitchMsg(message, true, userState, channel);
-
-                //Adding an node intentionally without a discord message because this is the buffer message.
-                const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
-                bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
-            }
+            
 
             if(bridge.twitchMessageSearchCache[message])
             {
