@@ -1,18 +1,20 @@
 import https from 'https';
 import open from 'open';
-import fs from 'fs';import hydra, { IExportOBJ } from '@acelikesghosts/hydra';
+import fs from 'fs';
 import http, { RequestListener } from 'http';
 import { configFile } from './clients/bridge';
 import { URL } from 'url';
 
-interface request {
-    url: string
+interface request
+{
+    url: string;
 }
 
-interface response {
+interface response
+{
     statusCode: number,
     write: Function,
-    end: Function
+    end: Function;
 }
 
 interface IParams
@@ -21,7 +23,7 @@ interface IParams
     scope: string,
     redirect_uri: string,
     client_secret: string,
-    use_https: boolean
+    use_https: boolean;
 }
 
 /**
@@ -37,37 +39,39 @@ interface IParams
     "tokenType": "bearer"
 }
  */
-interface IResponse 
+interface AuthResponse 
 {
-    access_token: string,
-    expires_in: number,
-    refresh_token: string,
+    accessToken: string,
+    expiresIn: number,
+    refreshToken: string,
     scope: string[],
-    token_type: string;
+    tokenType: string;
 }
 
-/**
- * @description Change our response from snake case to camel case.
- * @param res 
- * @returns 
- */
-function fixResponse(res: IResponse): { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string }
+function underscoreToCammel(str: string): string
 {
-    const hydr: IExportOBJ = hydra(res) as IExportOBJ;
-    hydr.set('accessToken', res.access_token);
-    hydr.set('expiresIn', res.expires_in);
-    hydr.set('refreshToken', res.refresh_token);
-    hydr.set('scope', res.scope);
-    hydr.set('tokenType', res.token_type);
+    let res: string = '';
+    for(let i = 0; i < str.length; i++)
+    {
+        if(str[i] == '_')
+        {
+            res += str[i + 1].toUpperCase();
+            i++;
+        }
+        else res += str[i];
+    }
 
-    const obj: any = hydr.value();
-    delete obj['access_token'];
-    delete obj['expires_in'];
-    delete obj['refresh_token'];
-    delete obj['scope'];
-    delete obj['token_type'];
+    return res;
+}
 
-    return hydr.value() as any;
+function objNamingConvert(obj: any): {}
+{
+    const res: any = {};
+
+    for(const i in obj) 
+        res[underscoreToCammel(i)] = obj[i];
+
+    return res;
 }
 
 const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise((resolve, reject) =>
@@ -81,7 +85,7 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
         res.end();
         tempServer.close();
         resolve(new URL(req.url as string, url).searchParams);
-    }
+    };
 
     const tempServer = useHttps ? https.createServer({
         key: fs.readFileSync(configFile.T2D_HTTPS.keyPath),
@@ -93,7 +97,7 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
     tempServer.on('error', e => reject(e));
 });
 
-async function authenticateTwitch(params: IParams): Promise<{ accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string }>
+async function authenticateTwitch(params: IParams): Promise<AuthResponse>
 {
     const targetUrl = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +
@@ -104,7 +108,7 @@ async function authenticateTwitch(params: IParams): Promise<{ accessToken: strin
     {
         open(targetUrl);
     }
-    catch (e)
+    catch(e)
     {
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
@@ -124,9 +128,9 @@ async function authenticateTwitch(params: IParams): Promise<{ accessToken: strin
             {
                 try
                 {
-                    resolve(fixResponse(JSON.parse(Buffer.concat(resBuffer).toString())));
+                    resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as AuthResponse);
                 }
-                catch (e)
+                catch(e)
                 {
                     //We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);
@@ -149,4 +153,8 @@ async function authenticateTwitch(params: IParams): Promise<{ accessToken: strin
 export
 {
     authenticateTwitch
+};
+
+export type {
+    AuthResponse
 };

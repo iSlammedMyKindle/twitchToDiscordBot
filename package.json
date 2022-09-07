@@ -5,7 +5,6 @@
     "start": "node ./dist/src/index.js"
   },
   "dependencies": {
-    "@acelikesghosts/hydra": "^1.2.3",
     "@twurple/auth": "^5.2.3",
     "@twurple/chat": "^5.2.3",
     "discord.js": "^13.8.1",

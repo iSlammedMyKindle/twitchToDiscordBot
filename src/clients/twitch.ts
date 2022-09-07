@@ -1,11 +1,11 @@
 import bridge, { genericPromiseError, configFile, manageMsgCache } from './bridge';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
-import { authenticateTwitch } from '../oauth';
+import { authenticateTwitch, AuthResponse } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { PrivateMessage } from '@twurple/chat';
-import { ChatClient } from '@twurple/chat/lib';
+import { ChatClient } from '@twurple/chat';
 
 
 //Twitch init
@@ -19,15 +19,16 @@ function registerTwitch(): void
     async function loginToTwitch(): Promise<void>
     {
         //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
-        let tokenData: { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string };
+        let tokenData: AuthResponse;
 
         try
         {
-            tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
+            if(configFile.DEV_TWITCH_TOKEN)
+                tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
         }
-        catch (error: unknown)
+        catch(error: unknown)
         {
-            const res: { accessToken: string, expiresIn: number, refreshToken: string, scope: string[], tokenType: string } = await authenticateTwitch({
+            const res: AuthResponse = await authenticateTwitch({
                 scope: configFile.T2D_SCOPE,
                 redirect_uri: configFile.T2D_REDIRECT_URI,
                 client_id: configFile.T2D_CLIENT_ID,
@@ -36,8 +37,8 @@ function registerTwitch(): void
             });
 
             await fs.writeFile('./tokens.json', JSON.stringify(res));
-            loginToTwitch();
 
+            loginToTwitch();
             return;
         }
 
@@ -48,7 +49,13 @@ function registerTwitch(): void
                 'clientSecret': configFile.T2D_SECRET,
                 onRefresh: async newTokenData => await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8')
             },
-            tokenData as any
+            tokenData! as any || await authenticateTwitch({
+                scope: configFile.T2D_SCOPE,
+                redirect_uri: configFile.T2D_REDIRECT_URI,
+                client_id: configFile.T2D_CLIENT_ID,
+                client_secret: configFile.T2D_SECRET,
+                use_https: configFile.T2D_HTTPS.enabled
+            })
         );
 
         bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
@@ -62,20 +69,19 @@ function registerTwitch(): void
             bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], 'twitch bot buffer message!');
         });
 
-        bridge.twitch.anonChatClient.connect().then(() => 
-        {
-            console.log('Anon Twitch Client has connected');
-        });
+        bridge.twitch.anonChatClient.connect().then(() =>
+            console.log('Anon Twitch Client has connected')
+        );
 
         // Using anonChatClient so that we recieve the messages we send, yknow.
         bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) =>
         {
-            if (!bridge.targetDiscordChannel)
+            if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
-            
+
             // We should (hopefully) not get stuck in a loop here due to our
             // checks in discord.ts
-            bridge.targetDiscordChannel.send(`[t][${user}] ${message}`).then((discordMessage: Message<boolean>) =>
+            bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
             {
                 //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
@@ -91,7 +97,7 @@ function registerTwitch(): void
             }, genericPromiseError);
 
 
-            if (!userState.id)
+            if(!userState.id)
             {
                 console.log('Recieved a message without an ID.');
 
@@ -103,7 +109,7 @@ function registerTwitch(): void
                 bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
             }
 
-            if (bridge.twitchMessageSearchCache[message])
+            if(bridge.twitchMessageSearchCache[message])
             {
                 const existingNode = bridge.twitchMessageSearchCache[message],
                     twitchMessage = new twitchMsg(message, true, userState, channel);

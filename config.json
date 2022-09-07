@@ -1,7 +1,8 @@
 {
+    "DEV_TWITCH_TOKEN": false,
+    "T2D_USER": "",
     "T2D_CLIENT_ID": "",
     "T2D_SECRET": "",
-    "T2D_USER": "",
     "T2D_CHANNELS": [
         ""
     ],

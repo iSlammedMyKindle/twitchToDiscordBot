@@ -7,10 +7,10 @@ const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
 function chunkMessage(message: string = '', contSymbol: string = '[...]')
 {
-    const res = [''];
-    let resIndex = 0;
+    const res: string[] = [''];
+    let resIndex: number = 0;
 
-    for(let i = 0; i < message.length; i++)
+    for(let i: number = 0; i < message.length; i++)
     {
         if(res[resIndex].length == 490)
         {
