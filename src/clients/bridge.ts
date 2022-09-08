@@ -11,6 +11,11 @@ import configFile from '../../config.json';
 export const genericPromiseError = (error: any) => console.error('Snap, I hit a snag... >.<', error);
 
 const Twitch = {
+    // We need to have a non-authenciated Twitch client so that
+    // we can listen for messages which our authed cliient has sent
+    // IE: call #say w/ auth client the authed client will not get
+    // that message w/ the onMessage(...) event.
+    // but our non-authed client will get the event
     authChatClient: null as ChatClient | null,
     anonChatClient: null as ChatClient | null
 };
