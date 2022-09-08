@@ -110,10 +110,9 @@ function registerDiscord(): void
     });
 
     /**
-     * Current bugged, will always throw an error due to us never getting the twitchObj bound to the linkedListNode.
-     * No clue why, but aye! Not my issue ATM. Just focusing on the migration to Pwurple. Someone else (kindle) please solve <3
-     * @param m
-     * @returns 
+     * Message deletion event, if we have a Twitch OBJ bound to the Discord one already we delete the Twitch one.
+     * @param {Message<boolean> | PartialMessage} m
+     * @returns {void} Nothing.
      */
     const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
     {
