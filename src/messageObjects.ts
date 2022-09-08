@@ -7,9 +7,9 @@ The conjoined message object, it holds the link between a discord and twitch mes
 class conjoinedMsg
 {
     public message: Message<boolean> | undefined;
-    public twitchArray: any[];
+    public twitchArray: twitchMsg[];
 
-    constructor(message: Message<boolean> | undefined = undefined, twitchArray: any[] = [])
+    constructor(message: Message<boolean> | undefined = undefined, twitchArray: twitchMsg[] = [])
     {
         this.message = message;
         this.twitchArray = twitchArray;
