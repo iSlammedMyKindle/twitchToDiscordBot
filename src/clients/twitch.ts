@@ -31,6 +31,9 @@ function registerTwitch(): void
         }
         catch(error: unknown)
         {
+            // The only way for an error to be thrown here is if we try to read tokens.json and it 
+            // doesn't exist, which will only happen if we have
+            // DEV_TWITCH_TOKEN enabled, so it's safe to just write to tokens.json
             const res: AuthResponse = await authenticateTwitch({
                 scope: configFile.T2D_SCOPE,
                 redirect_uri: configFile.T2D_REDIRECT_URI,
