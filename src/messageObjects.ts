@@ -1,5 +1,5 @@
+import { PrivateMessage } from '@twurple/chat';
 import { Message } from 'discord.js';
-import tmijs from 'tmi.js';
 
 /*Made by iSlammedMyKindle in 2022!
 The conjoined message object, it holds the link between a discord and twitch message. We use this to potentially make edits and deletions to messages*/
@@ -7,9 +7,9 @@ The conjoined message object, it holds the link between a discord and twitch mes
 class conjoinedMsg
 {
     public message: Message<boolean> | undefined;
-    public twitchArray: any[];
+    public twitchArray: twitchMsg[];
 
-    constructor(message: Message<boolean> | undefined = undefined, twitchArray: any[] = [])
+    constructor(message: Message<boolean> | undefined = undefined, twitchArray: twitchMsg[] = [])
     {
         this.message = message;
         this.twitchArray = twitchArray;
@@ -20,10 +20,10 @@ class twitchMsg
 {
     public msg: string = '';
     public self: boolean;
-    public userState: tmijs.Userstate;
+    public userState: PrivateMessage;
     public channel: string;
 
-    constructor(msg: string = '', self: boolean, userState: tmijs.Userstate, channel: string)
+    constructor(msg: string = '', self: boolean, userState: PrivateMessage, channel: string)
     {
         this.msg = msg;
         this.self = self;
@@ -33,7 +33,7 @@ class twitchMsg
 }
 
 export 
-{ 
-    conjoinedMsg, 
-    twitchMsg 
+{
+    conjoinedMsg,
+    twitchMsg
 };

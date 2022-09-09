@@ -1,9 +1,12 @@
+import bridge, { genericPromiseError, configFile, manageMsgCache } from './bridge';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
-import { authenticateTwitch } from '../oauth';
+import { authenticateTwitch, AuthResponse } from '../oauth';
 import { Message } from 'discord.js';
-import bridge, { genericPromiseError, configFile, twitchDelete, manageMsgCache } from './bridge';
-import tmijs from 'tmi.js';
-import fs from 'fs';
+import { promises as fs } from 'fs';
+import { RefreshingAuthProvider } from '@twurple/auth';
+import { PrivateMessage } from '@twurple/chat';
+import { ChatClient } from '@twurple/chat';
+
 
 //Twitch init
 /////////////
@@ -12,54 +15,85 @@ function registerTwitch(): void
 {
     /**
     * Login to twitch using the access token found in our oauth process
-    * @param {string} {access_token} a javascript object containing at minimum, a twitch access token 
-    * @param {boolean} skipTokenSave
     */
-    function loginToTwitch({ access_token }: { access_token: string; }, skipTokenSave: boolean): void
+    async function loginToTwitch(): Promise<void>
     {
         //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
-        //If we have the save token flag enabled, save this to "devTwitchToken"
-        if(!skipTokenSave && configFile.T2D_DEV_SAVE_TOKEN)
-            fs.writeFile('./devTwitchToken', access_token, null, error =>
+        let tokenData: AuthResponse;
+
+        try
+        {
+            if(configFile.DEV_TWITCH_TOKEN)
             {
-                if(error) console.error('I hit a snag...', error);
+                tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
+                console.log('Using saved token data found in ./tokens.json');
+            }
+        }
+        catch(error: unknown)
+        {
+            // The only way for an error to be thrown here is if we try to read tokens.json and it 
+            // doesn't exist, which will only happen if we have
+            // DEV_TWITCH_TOKEN enabled, so it's safe to just write to tokens.json
+            const res: AuthResponse = await authenticateTwitch({
+                scope: configFile.T2D_SCOPE,
+                redirect_uri: configFile.T2D_REDIRECT_URI,
+                client_id: configFile.T2D_CLIENT_ID,
+                client_secret: configFile.T2D_SECRET,
+                use_https: configFile.T2D_HTTPS.enabled
             });
 
-        bridge.twitchClient = tmijs.Client({
-            options: { debug: true },
-            identity: {
-                username: configFile.T2D_USER,
-                password: 'oauth:' + access_token
-            },
-            channels: configFile.T2D_CHANNELS
-        });
+            await fs.writeFile('./tokens.json', JSON.stringify(res));
+            console.log('Saved token data.');
 
-        bridge.twitchClient.connect().then(() =>
-        {
-            console.log('Twitch bot is live! Sending a buffer message...', configFile.T2D_USER);
-            //Send a buffer message that allows us to track messages being sent as the twitch bot
-            //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-            bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], 'twitch bot buffer message!');
-        });
+            loginToTwitch();
+            return;
+        }
 
-        bridge.twitchClient.on('message', (channel: string, userState: tmijs.Userstate, msg: string, self: boolean) =>
-        {
-            //Send a message to twitch
-            //Something fascinating is, if a message is sent by the bot, self will be true. If I use the same username though when I chat, it's false.
-            if(!self)
+        // If bad data is given to our auth provider you'll get a log along the lines of "no valid token avaiable; trying to refresh.." etc.
+        const authProvider: RefreshingAuthProvider = new RefreshingAuthProvider(
             {
-                // Good idea to check if it exists or not, dunno.
-                if(!bridge.targetDiscordChannel)
-                {
-                    throw new Error('Cannot find Discord channel.');
-                }
+                'clientId': configFile.T2D_CLIENT_ID,
+                'clientSecret': configFile.T2D_SECRET,
+                onRefresh: async newTokenData => configFile.DEV_TWITCH_TOKEN ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null
+            },
+            tokenData! as any || await authenticateTwitch({
+                scope: configFile.T2D_SCOPE,
+                redirect_uri: configFile.T2D_REDIRECT_URI,
+                client_id: configFile.T2D_CLIENT_ID,
+                client_secret: configFile.T2D_SECRET,
+                use_https: configFile.T2D_HTTPS.enabled
+            })
+        );
 
-                bridge.targetDiscordChannel.send(`[t][${ userState['display-name'] }] ${ msg }`).then((discordMessage: Message<boolean>) =>
+        bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
+        bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [configFile.T2D_CHANNELS[0]] });
+
+        //TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
+        bridge.twitch.authChatClient.connect().then(() =>
+            console.log('Authenticated Twitch Client has connected')
+        );
+
+        bridge.twitch.anonChatClient.connect().then(() =>
+            console.log('Anon Twitch Client has connected')
+        );
+
+        // Using anonChatClient so that we recieve the messages we send, yknow.
+        bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) =>
+        {
+            if(!bridge.targetDiscordChannel)
+                throw new Error('Cannot find Discord channel.');
+
+            // If the person who sent the message's name isn't equal to the bot's name
+            // then send the Discord message.
+            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+                // We should (hopefully) not get stuck in a loop here due to our
+                // checks in discord.ts
+                bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
                 {
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
                     //Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
-                    const twitchMessage = new twitchMsg(msg, self, userState, channel);
+                    const twitchMessage = new twitchMsg(message, false, userState, channel);
                     const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
@@ -68,72 +102,24 @@ function registerTwitch(): void
                     //Count upwards and delete the oldest message if need be
                     manageMsgCache();
                 }, genericPromiseError);
-            }
 
-            //If we reach this and we're looking for this very message, then we have a chance to re-bind the message that we tried to send via discord
-            else
+            if(bridge.twitchMessageSearchCache[message])
             {
+                const existingNode = bridge.twitchMessageSearchCache[message],
+                    twitchMessage = new twitchMsg(message, true, userState, channel);
 
-                //Record that last given userstate ID (specific to bots)
-                //Set the message to contain the special value: botUserStateId
-                if(userState.id)
-                    bridge.lastUserStateMsg.userState.botUserStateId = userState.id;
+                existingNode.data.twitchArray.push(twitchMessage);
+                bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
 
-                else
-                {
-                    console.log('Got the userstate message with no ID -_-');
-
-                    //[trailing bot message] This is a special method of recording the last twitch message because we need to have a method of removing this message after the fact
-                    const twitchMessage = new twitchMsg(msg, self, userState, channel);
-                    bridge.lastUserStateMsg = twitchMessage;
-
-                    //Adding an node intentionally without a discord message because this is the buffer message.
-                    const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(undefined, [twitchMessage]));
-                    bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
-                }
-
-                //before we override the last message, lets make sure we delete this twitch message if required (...this is jank)
-                //We wait until after the userstate message gets a bot message ID
-                if(bridge.lastUserStateMsg?.userState.cueForDelete)
-                {
-                    twitchDelete(bridge.lastUserStateMsg);
-                    manageMsgCache(bridge.discordTwitchCacheMap.get(bridge.lastUserStateMsg));
-                }
-
-                //If we found the twitch message we wanted to connect, we no longer need it in the cache
-                if(bridge.twitchMessageSearchCache[msg])
-                {
-
-                    const existingNode = bridge.twitchMessageSearchCache[msg],
-                        twitchMessage = new twitchMsg(msg, self, userState, channel);
-
-                    bridge.lastUserStateMsg = twitchMessage;
-
-                    existingNode.data.twitchArray.push(twitchMessage);
-                    bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
-
-                    //Remove this from the cache since we found it
-                    delete bridge.twitchMessageSearchCache[msg];
-                }
+                //Remove this from the cache since we found it
+                delete bridge.twitchMessageSearchCache[message];
             }
         });
     }
 
     //Login to twitch
     //There are a lot of things that were named differently because this command has the potential of using environemnt variables, so this will be painful to look at and I'm sorry XP
-    if(configFile.T2D_DEV_SAVE_TOKEN && fs.existsSync('./devTwitchToken'))
-    {
-        //If the file exists, use the thing
-        console.log('==Found the token file! (devTwitchToken!) Using that instead of logging in via oauth (if this token is old, delete the file)==');
-        loginToTwitch({ access_token: fs.readFileSync('./devTwitchToken') as unknown as string }, true);
-    }
-    else authenticateTwitch({
-        scope: configFile.T2D_SCOPE,
-        redirect_uri: configFile.T2D_REDIRECT_URI,
-        client_id: configFile.T2D_CLIENT_ID,
-        client_secret: configFile.T2D_SECRET,
-        use_https: !configFile.T2D_DEV_SAVE_TOKEN //If we don't save a dev token, we assume we're in prod mode, and require the use of https.
-    }).then(loginToTwitch as any);
+    loginToTwitch();
 }
 
 export default registerTwitch;

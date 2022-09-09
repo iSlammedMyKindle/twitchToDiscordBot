@@ -7,12 +7,11 @@ const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
 function chunkMessage(message: string = '', contSymbol: string = '[...]')
 {
-    const res = [''];
-    let resIndex = 0;
+    const res: string[] = [''];
+    let resIndex: number = 0;
 
-    for(let i = 0; i < message.length; i++)
+    for(let i: number = 0; i < message.length; i++)
     {
-
         if(res[resIndex].length == 490)
         {
             resIndex++;
@@ -92,24 +91,29 @@ function registerDiscord(): void
         for(const msg of chunkedTwitchMessages)
             bridge.twitchMessageSearchCache[msg] = listNode;
 
-        let currIndex = 0;
-            const recursiveSend = ()=>
-            {
-                if(currIndex < chunkedTwitchMessages.length)
-                bridge.twitchClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(()=>
+        let currIndex: number = 0;
+        const recursiveSend = (): void =>
+        {
+            if(currIndex < chunkedTwitchMessages.length)
+                bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(() =>
                 {
                     currIndex++;
                     //tmijs does this in their own version of sending multiple messages... therefore we must also follow this jank method
-                    setTimeout(()=>recursiveSend(), 250);
+                    setTimeout(() => recursiveSend(), 250);
                 });
-            }
+        };
 
-            recursiveSend();
+        recursiveSend();
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
     });
 
+    /**
+     * Message deletion event, if we have a Twitch OBJ bound to the Discord one already we delete the Twitch one.
+     * @param {Message<boolean> | PartialMessage} m
+     * @returns {void} Nothing.
+     */
     const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
     {
         const messageFromCache = bridge.discordTwitchCacheMap.get(m);
@@ -117,13 +121,7 @@ function registerDiscord(): void
 
         //Assuming we found a message we deleted on discord, delete it on twitch too
         for(const i of messageFromCache.data.twitchArray)
-        {
-            //Cue for deletion instead of deleting the twitch side now
-            if(i.userState == bridge.lastUserStateMsg.userState && i.self && !i.userState.botUserStateId)
-                i.userState.cueForDelete = true;
-
-            else twitchDelete(i);
-        }
+            twitchDelete(i);
 
         //Delete this conjoined message from all cache
         manageMsgCache(messageFromCache);

@@ -1,8 +1,21 @@
-import http, { RequestListener } from 'http';
 import https from 'https';
 import open from 'open';
-import { URL } from 'url';
 import fs from 'fs';
+import http, { RequestListener } from 'http';
+import { configFile } from './clients/bridge';
+import { URL } from 'url';
+
+interface request
+{
+    url: string;
+}
+
+interface response
+{
+    statusCode: number,
+    write: Function,
+    end: Function;
+}
 
 interface IParams
 {
@@ -10,17 +23,55 @@ interface IParams
     scope: string,
     redirect_uri: string,
     client_secret: string,
-    use_https: boolean
+    use_https: boolean;
 }
 
-interface request {
-    url: string
+/**
+ * {
+    "accessToken": "",
+    "expiresIn": 14405,
+    "refreshToken": "",
+    "scope": [
+        "channel:moderate",
+        "chat:edit",
+        "chat:read"
+    ],
+    "tokenType": "bearer"
+}
+ */
+interface AuthResponse 
+{
+    accessToken: string,
+    expiresIn: number,
+    refreshToken: string,
+    scope: string[],
+    tokenType: string;
 }
 
-interface response {
-    statusCode: number,
-    write: Function,
-    end: Function
+function underscoreToCammel(str: string): string
+{
+    let res: string = '';
+    for(let i = 0; i < str.length; i++)
+    {
+        if(str[i] == '_')
+        {
+            res += str[i + 1].toUpperCase();
+            i++;
+        }
+        else res += str[i];
+    }
+
+    return res;
+}
+
+function objNamingConvert(obj: any): {}
+{
+    const res: any = {};
+
+    for(const i in obj)
+        res[underscoreToCammel(i)] = obj[i];
+
+    return res;
 }
 
 const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise((resolve, reject) =>
@@ -34,19 +85,19 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
         res.end();
         tempServer.close();
         resolve(new URL(req.url as string, url).searchParams);
-    }
+    };
 
     const tempServer = useHttps ? https.createServer({
-        key: fs.readFileSync('./sslCertificate/twitchToDiscord.pass.key'),
-        cert: fs.readFileSync('./sslCertificate/twitchToDiscord.crt'),
-        passphrase:'1234'
+        key: fs.readFileSync(configFile.T2D_HTTPS.keyPath),
+        cert: fs.readFileSync(configFile.T2D_HTTPS.certPath),
+        passphrase: configFile.T2D_HTTPS.passphrase ?? ''
     }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
 
     tempServer.listen(3000);
     tempServer.on('error', e => reject(e));
 });
 
-async function authenticateTwitch(params: IParams): Promise<unknown>
+async function authenticateTwitch(params: IParams): Promise<AuthResponse>
 {
     const targetUrl = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +
@@ -77,7 +128,7 @@ async function authenticateTwitch(params: IParams): Promise<unknown>
             {
                 try
                 {
-                    resolve(JSON.parse(Buffer.concat(resBuffer).toString()));
+                    resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as AuthResponse);
                 }
                 catch(e)
                 {
@@ -102,4 +153,8 @@ async function authenticateTwitch(params: IParams): Promise<unknown>
 export
 {
     authenticateTwitch
+};
+
+export type {
+    AuthResponse
 };
