@@ -33,7 +33,7 @@ class twitchMsg
 }
 
 export 
-{ 
-    conjoinedMsg, 
-    twitchMsg 
+{
+    conjoinedMsg,
+    twitchMsg
 };

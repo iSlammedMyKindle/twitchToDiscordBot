@@ -55,10 +55,10 @@ class nodeInterface
 
     constructor(data?: any)
     {
-        if(data) 
-            this.beginningNode = 
-            this.lastCreatedNode = 
-            new linkedListNode(data);
+        if(data)
+            this.beginningNode =
+                this.lastCreatedNode =
+                new linkedListNode(data);
     }
 
     /**

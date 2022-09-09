@@ -23,13 +23,13 @@ function registerTwitch(): void
 
         try
         {
-            if (configFile.DEV_TWITCH_TOKEN)
+            if(configFile.DEV_TWITCH_TOKEN)
             {
                 tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
                 console.log('Using saved token data found in ./tokens.json');
             }
         }
-        catch (error: unknown)
+        catch(error: unknown)
         {
             const res: AuthResponse = await authenticateTwitch({
                 scope: configFile.T2D_SCOPE,
@@ -77,13 +77,15 @@ function registerTwitch(): void
         // Using anonChatClient so that we recieve the messages we send, yknow.
         bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) =>
         {
-            if (!bridge.targetDiscordChannel)
+            if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
-            if (!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+            // If the person who sent the message's name isn't equal to the bot's name
+            // then send the Discord message.
+            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
                 // We should (hopefully) not get stuck in a loop here due to our
                 // checks in discord.ts
-                bridge.targetDiscordChannel.send(`[t][${user}] ${message}`).then((discordMessage: Message<boolean>) =>
+                bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
                 {
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
@@ -98,7 +100,7 @@ function registerTwitch(): void
                     manageMsgCache();
                 }, genericPromiseError);
 
-            if (bridge.twitchMessageSearchCache[message])
+            if(bridge.twitchMessageSearchCache[message])
             {
                 const existingNode = bridge.twitchMessageSearchCache[message],
                     twitchMessage = new twitchMsg(message, true, userState, channel);

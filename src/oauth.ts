@@ -68,7 +68,7 @@ function objNamingConvert(obj: any): {}
 {
     const res: any = {};
 
-    for(const i in obj) 
+    for(const i in obj)
         res[underscoreToCammel(i)] = obj[i];
 
     return res;
