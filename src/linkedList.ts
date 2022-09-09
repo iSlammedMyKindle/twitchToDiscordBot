@@ -1,7 +1,9 @@
+import { conjoinedMsg } from './messageObjects';
+
 class linkedListNode
 {
 
-    public data: any;
+    public data: conjoinedMsg;
     public next: any = null;
     public prev: any = null;
 

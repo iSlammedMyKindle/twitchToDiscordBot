@@ -1,3 +1,4 @@
+import { PrivateMessage } from '@twurple/chat';
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
 import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
@@ -29,7 +30,7 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
 
 function registerDiscord(): void 
 {
-    discordClient.on('messageCreate', (m: Message<boolean>) =>
+    discordClient.on('messageCreate', async (m: Message<boolean>) =>
     {
         if(m.author.bot || m.guild === null)
             return;
@@ -92,18 +93,44 @@ function registerDiscord(): void
             bridge.twitchMessageSearchCache[msg] = listNode;
 
         let currIndex: number = 0;
-        const recursiveSend = (): void =>
+        function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: PrivateMessage; }): void
         {
             if(currIndex < chunkedTwitchMessages.length)
-                bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(() =>
-                {
-                    currIndex++;
-                    //tmijs does this in their own version of sending multiple messages... therefore we must also follow this jank method
-                    setTimeout(() => recursiveSend(), 250);
-                });
-        };
+                reply?.userState ?
+                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
+                        replyTo: reply.userState
+                    }).then((): void =>
+                    {
+                        currIndex++;
+                        setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
+                    })
+                    :
+                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then((): void =>
+                    {
+                        currIndex++;
+                        setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
+                    });
+        }
 
-        recursiveSend();
+
+        if(m.type === 'REPLY')
+        {
+            const fetchedMessageReply: Message<boolean> = await m.fetchReference();
+            // The Twitch message of the Discord message we replied to.
+            const replyNode: linkedListNode | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply);
+
+            // We are only going to reply to the first Twitch message element, due to the fact it makes
+            // no difference to which we reply to.
+            // Cause it will always respond to the "starting" reply message one.
+
+            recursiveSend(chunkedTwitchMessages, {
+                userState: replyNode?.data.twitchArray[0].userState as PrivateMessage
+            });
+
+            return;
+        }
+
+        recursiveSend(chunkedTwitchMessages);
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
