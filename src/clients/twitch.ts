@@ -100,19 +100,19 @@ function registerTwitch(): void
             if(userState.tags.get('reply-parent-display-name'))
             {
                 // get the linked list node from the Twitch ID that was replied to
-                const fetchedNode: linkedListNode = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
+                const fetchedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
 
                 if(!fetchedNode)
                     return;
 
                 try
                 {
-                    fetchedNode.data.message!.reply(`[t][ ${ user } ] ${ message }`);
+                    fetchedNode.data!.message!.reply(`[t][ ${ user } ] ${ message }`);
                     return;
                 }
                 catch(err: unknown)
                 {
-                    console.error(`Failed to reply to Discord message (ID %d)\nError: ${ err }`, fetchedNode.data.message!.id);
+                    console.error(`Failed to reply to Discord message (ID %d)\nError: ${ err }`, fetchedNode.data!.message!.id);
                 }
             }
 

@@ -1,15 +1,14 @@
-import { conjoinedMsg } from './messageObjects';
-
-class linkedListNode
+class linkedListNode<Type>
 {
 
-    public data: conjoinedMsg;
+    public data: Type | undefined;
     public next: any = null;
     public prev: any = null;
 
-    constructor(data?: any)
+    constructor(data?: Type)
     {
-        this.data = data;
+        if(data)
+            this.data = data;
     }
 
     /**
@@ -26,8 +25,8 @@ class linkedListNode
 
         const key: string = isForward ? 'prev' : 'next';
 
-        if(this[key as keyof linkedListNode] && index)
-            return this[key as keyof linkedListNode].getItemAt(--index, isForward);
+        if(this[key as keyof linkedListNode<any>] && index)
+            return this[key as keyof linkedListNode<any>].getItemAt(--index, isForward);
 
         return null;
     }
@@ -52,8 +51,8 @@ class linkedListNode
 class nodeInterface
 {
     //The node that was last made using `addNode`; should always be the last node in the list.
-    public lastCreatedNode: linkedListNode | undefined;
-    public beginningNode: linkedListNode | undefined;
+    public lastCreatedNode: linkedListNode<any> | undefined;
+    public beginningNode: linkedListNode<any> | undefined;
 
     constructor(data?: any)
     {

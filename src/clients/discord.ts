@@ -83,7 +83,7 @@ function registerDiscord(): void
         const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
         //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-        const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
+        const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
         bridge.discordTwitchCacheMap.set(m, listNode);
 
         //COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
@@ -117,14 +117,14 @@ function registerDiscord(): void
         {
             const fetchedMessageReply: Message<boolean> = await m.fetchReference();
             // The Twitch message of the Discord message we replied to.
-            const replyNode: linkedListNode | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply);
+            const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply);
 
             // We are only going to reply to the first Twitch message element, due to the fact it makes
             // no difference to which we reply to.
             // Cause it will always respond to the "starting" reply message one.
 
             recursiveSend(chunkedTwitchMessages, {
-                userState: replyNode?.data.twitchArray[0].userState as PrivateMessage
+                userState: replyNode?.data!.twitchArray[0].userState as PrivateMessage ?? null
             });
 
             return;
