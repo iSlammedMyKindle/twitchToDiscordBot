@@ -95,21 +95,20 @@ function registerDiscord(): void
         let currIndex: number = 0;
         function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: PrivateMessage; }): void
         {
+            // I don't know what to name this.
+            function incrementAndStuff(): void
+            {
+                currIndex++;
+                setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
+            }
+
             if(currIndex < chunkedTwitchMessages.length)
                 reply?.userState ?
                     bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
                         replyTo: reply.userState
-                    }).then((): void =>
-                    {
-                        currIndex++;
-                        setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
-                    })
-                    :
-                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then((): void =>
-                    {
-                        currIndex++;
-                        setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
-                    });
+                    }).then(incrementAndStuff)
+                :
+                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
         }
 
 

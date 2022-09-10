@@ -142,7 +142,7 @@ function registerTwitch(): void
                 const existingNode = bridge.twitchMessageSearchCache[message],
                     twitchMessage = new twitchMsg(message, true, userState, channel);
 
-                existingNode.data.twitchArray.push(twitchMessage);
+                existingNode.data!.twitchArray.push(twitchMessage);
                 bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
                 bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, existingNode);
 
