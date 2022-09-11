@@ -84,7 +84,12 @@ function registerTwitch(): void
             if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
-            /**
+
+            // If the person who sent the message's name isn't equal to the bot's name
+            // then send the Discord message.
+            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+            {
+                /**
                     'reply-parent-display-name': 'testingaccount__',
                     'reply-parent-msg-body': 'test',
                     'reply-parent-msg-id': 'f279b175-7100-4486-bb96-c188ea102bbd',
@@ -93,32 +98,29 @@ function registerTwitch(): void
 
                     Those keys will exist on the userState.tags (Map<String, String>) map, if it
                     is a reply.
-            */
+                */
 
-            // if there is a reply parent display name
-            // we know it's a reply.
-            if(userState.tags.get('reply-parent-display-name'))
-            {
-                // get the linked list node from the Twitch ID that was replied to
-                const fetchedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
-
-                if(!fetchedNode)
-                    return;
-
-                try
+                // if there is a reply parent display name
+                // we know it's a reply.
+                if(userState.tags.get('reply-parent-display-name'))
                 {
-                    fetchedNode.data!.message!.reply(`[t][ ${ user } ] ${ message }`);
-                    return;
-                }
-                catch(err: unknown)
-                {
-                    console.error(`Failed to reply to Discord message (ID %d)\nError: ${ err }`, fetchedNode.data!.message!.id);
-                }
-            }
+                    // get the linked list node from the Twitch ID that was replied to
+                    const fetchedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
 
-            // If the person who sent the message's name isn't equal to the bot's name
-            // then send the Discord message.
-            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+                    if(!fetchedNode)
+                        return;
+
+                    try
+                    {
+                        fetchedNode.data!.message!.reply(`[t][ ${ user } ] ${ message }`);
+                        return;
+                    }
+                    catch(err: unknown)
+                    {
+                        console.error(`Failed to reply to Discord message (ID %d)\nError: ${ err }`, fetchedNode.data!.message!.id);
+                    }
+                }
+
                 // We should (hopefully) not get stuck in a loop here due to our
                 // checks in discord.ts
                 bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
@@ -136,6 +138,8 @@ function registerTwitch(): void
                     //Count upwards and delete the oldest message if need be
                     manageMsgCache();
                 }, genericPromiseError);
+
+            }
 
             if(bridge.twitchMessageSearchCache[message])
             {
