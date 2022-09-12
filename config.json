@@ -1,16 +1,16 @@
 {
-    "DEV_TWITCH_TOKEN": false,
-    "T2D_USER": "",
-    "T2D_BOT_USERNAME": "",
-    "T2D_CLIENT_ID": "",
-    "T2D_SECRET": "",
+    "DEV_TWITCH_TOKEN": true,
+    "T2D_USER": "ThisIsABot",
+    "T2D_BOT_USERNAME": "ace2",
+    "T2D_CLIENT_ID": "g7c5im9dgby970ik7h3gujweepdhxx",
+    "T2D_SECRET": "soqpzdee5ud7kvh8p485nza8yr6zcm",
     "T2D_CHANNELS": [
-        ""
+        "ace2"
     ],
     "T2D_SCOPE": "chat:read chat:edit channel:moderate",
     "T2D_REDIRECT_URI": "http://localhost:3000",
-    "T2D_DISCORD_CHANNEL": "",
-    "T2D_DISCORD_TOKEN": "",
+    "T2D_DISCORD_CHANNEL": "826045539640148018",
+    "T2D_DISCORD_TOKEN": "MTAwNTMxMjI1MTE2ODgyNTM4NA.GEoIjF.0nIbwRViDGu3XZq9WFFL-eqTKd0OV_Rgd1ZlBw",
     "T2D_HTTPS": {
         "enabled": false,
         "keyPath": "./sslCertificate/twitchToDiscord.pass.key",

@@ -83,7 +83,7 @@ function registerTwitch(): void
             if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
-            const newMessage: string = message.replace(/@([A-Za-z])\w+/, '');
+            const newMessage: string = message.replace(/@([A-Za-z])\w+ /, '');
 
             // If the person who sent the message's name isn't equal to the bot's name
             // then send the Discord message.
@@ -146,7 +146,6 @@ function registerTwitch(): void
                 const existingNode = bridge.twitchMessageSearchCache[newMessage],
                     twitchMessage = new twitchMsg(message, true, userState, channel);
 
-                console.log('bound message');
                 existingNode.data!.twitchArray.push(twitchMessage);
                 bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
                 bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, existingNode);
