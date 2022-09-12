@@ -1,12 +1,11 @@
 import bridge, { genericPromiseError, configFile, manageMsgCache } from './bridge';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
-import { authenticateTwitch, AuthResponse } from '../oauth';
+import { authenticateTwitch, AuthResponse, IParams, IHttps } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { PrivateMessage } from '@twurple/chat';
 import { ChatClient } from '@twurple/chat';
-
 
 //Twitch init
 /////////////
@@ -16,31 +15,56 @@ function registerTwitch(): void
     /**
     * Login to twitch using the access token found in our oauth process
     */
-    async function loginToTwitch(): Promise<void>
+     const configData: IParams = 
+     //If we have environment variables - assume we're grabbing everything from there
+     process.env.T2D?{
+         scope: process.env.T2D_SCOPE,
+         redirect_uri: process.env.T2D_REDIRECT_URI,
+         client_id: process.env.T2D_CLIENT_ID,
+         client_secret: process.env.T2D_SECRET,
+         https:{
+             use_https: process.env.T2D_HTTPS_ENABLED,
+             key_path: process.env.T2D_HTTPS_KEYPATH,
+             cert_path: process.env.T2D_HTTPS_CERTPATH,
+             passphrase: process.env.T2D_HTTPS_PASSPHRASE
+         } as IHttps
+     }
+     : //otherwise, just grab items from our json config
+    {
+         scope: configFile.T2D_SCOPE,
+         redirect_uri: configFile.T2D_REDIRECT_URI,
+         client_id: configFile.T2D_CLIENT_ID,
+         client_secret: configFile.T2D_SECRET,
+         https:{
+             use_https: configFile.T2D_HTTPS.ENABLED,
+             key_path: configFile.T2D_HTTPS.KEYPATH,
+             cert_path: configFile.T2D_HTTPS.CERTPATH,
+             passphrase: configFile.T2D_HTTPS.PASSPHRASE
+         }
+    }
+    
+    /**
+    * Login to twitch using the access token found in our oauth process
+    */
+    async function loginToTwitch(): Promise<void> 
     {
         //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
         let tokenData: AuthResponse;
 
-        try
+        try 
         {
-            if(configFile.DEV_TWITCH_TOKEN)
+            if (configFile.DEV_TWITCH_TOKEN) 
             {
                 tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
                 console.log('Using saved token data found in ./tokens.json');
             }
         }
-        catch(error: unknown)
+        catch (error: unknown) 
         {
             // The only way for an error to be thrown here is if we try to read tokens.json and it 
             // doesn't exist, which will only happen if we have
             // DEV_TWITCH_TOKEN enabled, so it's safe to just write to tokens.json
-            const res: AuthResponse = await authenticateTwitch({
-                scope: configFile.T2D_SCOPE,
-                redirect_uri: configFile.T2D_REDIRECT_URI,
-                client_id: configFile.T2D_CLIENT_ID,
-                client_secret: configFile.T2D_SECRET,
-                use_https: configFile.T2D_HTTPS.enabled
-            });
+            const res: AuthResponse = await authenticateTwitch(configData);
 
             await fs.writeFile('./tokens.json', JSON.stringify(res));
             console.log('Saved token data.');
@@ -56,13 +80,7 @@ function registerTwitch(): void
                 'clientSecret': configFile.T2D_SECRET,
                 onRefresh: async newTokenData => configFile.DEV_TWITCH_TOKEN ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null
             },
-            tokenData! as any || await authenticateTwitch({
-                scope: configFile.T2D_SCOPE,
-                redirect_uri: configFile.T2D_REDIRECT_URI,
-                client_id: configFile.T2D_CLIENT_ID,
-                client_secret: configFile.T2D_SECRET,
-                use_https: configFile.T2D_HTTPS.enabled
-            })
+            tokenData! as any || await authenticateTwitch(configData)
         );
 
         bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
@@ -78,17 +96,17 @@ function registerTwitch(): void
         );
 
         // Using anonChatClient so that we recieve the messages we send, yknow.
-        bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) =>
+        bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) => 
         {
-            if(!bridge.targetDiscordChannel)
+            if (!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
             // If the person who sent the message's name isn't equal to the bot's name
             // then send the Discord message.
-            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+            if (!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
                 // We should (hopefully) not get stuck in a loop here due to our
                 // checks in discord.ts
-                bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
+                bridge.targetDiscordChannel.send(`[t][${user}] ${message}`).then((discordMessage: Message<boolean>) => 
                 {
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
@@ -103,7 +121,7 @@ function registerTwitch(): void
                     manageMsgCache();
                 }, genericPromiseError);
 
-            if(bridge.twitchMessageSearchCache[message])
+            if (bridge.twitchMessageSearchCache[message]) 
             {
                 const existingNode = bridge.twitchMessageSearchCache[message],
                     twitchMessage = new twitchMsg(message, true, userState, channel);
@@ -117,9 +135,9 @@ function registerTwitch(): void
         });
     }
 
-    //Login to twitch
-    //There are a lot of things that were named differently because this command has the potential of using environemnt variables, so this will be painful to look at and I'm sorry XP
-    loginToTwitch();
-}
+        //Login to twitch
+        //There are a lot of things that were named differently because this command has the potential of using environemnt variables, so this will be painful to look at and I'm sorry XP
+        loginToTwitch();
+    }
 
 export default registerTwitch;

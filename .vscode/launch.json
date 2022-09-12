@@ -7,7 +7,7 @@
             "name": "Build Project",
             "program": "${workspaceFolder}\\src\\index.ts",
             "preLaunchTask": "npm: build",
-            "sourceMaps": true,
+            "sourceMaps": false,
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "outFiles": [

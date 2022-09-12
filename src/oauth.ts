@@ -2,7 +2,6 @@ import https from 'https';
 import open from 'open';
 import fs from 'fs';
 import http, { RequestListener } from 'http';
-import { configFile } from './clients/bridge';
 import { URL } from 'url';
 
 interface request
@@ -19,11 +18,19 @@ interface response
 
 interface IParams
 {
-    client_id: string,
-    scope: string,
-    redirect_uri: string,
-    client_secret: string,
-    use_https: boolean;
+    client_id?: string,
+    scope?: string,
+    redirect_uri?: string,
+    client_secret?: string,
+    https?:IHttps
+}
+
+interface IHttps
+{
+    use_https?: boolean,
+    key_path?: string,
+    cert_path?: string,
+    passphrase?: string,
 }
 
 /**
@@ -74,7 +81,7 @@ function objNamingConvert(obj: any): {}
     return res;
 }
 
-const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise((resolve, reject) =>
+const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise((resolve, reject) =>
 {
 
     //Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
@@ -87,10 +94,10 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
         resolve(new URL(req.url as string, url).searchParams);
     };
 
-    const tempServer = useHttps ? https.createServer({
-        key: fs.readFileSync(configFile.T2D_HTTPS.keyPath),
-        cert: fs.readFileSync(configFile.T2D_HTTPS.certPath),
-        passphrase: configFile.T2D_HTTPS.passphrase ?? ''
+    const tempServer = httpsParams?.use_https ? https.createServer({
+        key: fs.readFileSync(httpsParams?.key_path || ''),
+        cert: fs.readFileSync(httpsParams?.cert_path || ''),
+        passphrase: httpsParams?.passphrase ?? ''
     }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
 
     tempServer.listen(3000);
@@ -113,7 +120,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
 
-    const oauthParams: any = await listenForTwitch(params.redirect_uri, params.use_https);
+    const oauthParams: any = await listenForTwitch(params.redirect_uri, params.https || null);
     return new Promise((resolve, reject) =>
     {
         const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
@@ -156,5 +163,5 @@ export
 };
 
 export type {
-    AuthResponse
+    AuthResponse, IParams, IHttps
 };

@@ -43,3 +43,12 @@ You'll need this setting toggled to true if you are just developing the bot. Twi
 ## Launching the bot
 
 Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with Twitch. Once that's finished, the bot should be up and running! If you set `T2D_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
+
+## Launching with environment variables
+
+Environment variables will have the same syntax for the most part just like in the `config.json`. However, there are some main differences when applying the https env's - which are listed below:
+
+* `T2D_HTTPS_ENABLED` - turn https on; use this in production!
+* `T2D_HTTPS_KEYPATH` - where your .key is for the ssl certificate
+* `T2D_HTTPS_CERTPATH` - the path for the .crt
+* `T2D_HTTPS_PASSPHRASE` - the passphrase for the .crt
