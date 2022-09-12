@@ -91,7 +91,7 @@ const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) =>
         res.write('<h1>Hi there, the app should be authenticated now!</h1>');
         res.end();
         tempServer.close();
-        resolve(new URL(req.url as string, url).searchParams);
+        resolve(new URL(req.url, url).searchParams);
     };
 
     const tempServer = httpsParams?.use_https ? https.createServer({

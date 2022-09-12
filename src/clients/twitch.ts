@@ -6,6 +6,7 @@ import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { PrivateMessage } from '@twurple/chat';
 import { ChatClient } from '@twurple/chat';
+import { linkedListNode } from 'src/linkedList';
 
 //Twitch init
 /////////////
@@ -48,7 +49,6 @@ function registerTwitch(): void
     */
     async function loginToTwitch(): Promise<void> 
     {
-        //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
         let tokenData: AuthResponse;
 
         try 
@@ -101,12 +101,47 @@ function registerTwitch(): void
             if (!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
+            const newMessage: string = message.replace(/@([A-Za-z])\w+ /, '');
+
             // If the person who sent the message's name isn't equal to the bot's name
             // then send the Discord message.
-            if (!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+            if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+            {
+                /**
+                    'reply-parent-display-name': 'testingaccount__',
+                    'reply-parent-msg-body': 'test',
+                    'reply-parent-msg-id': 'f279b175-7100-4486-bb96-c188ea102bbd',
+                    'reply-parent-user-id': '821973125',
+  '                 'reply-parent-user-login': 'testingaccount__',
+
+                    Those keys will exist on the userState.tags (Map<String, String>) map, if it
+                    is a reply.
+                */
+
+                // if there is a reply parent display name
+                // we know it's a reply.
+                if(userState.tags.get('reply-parent-display-name'))
+                {
+                    // get the linked list node from the Twitch ID that was replied to
+                    const fetchedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
+
+                    if(!fetchedNode)
+                        return;
+
+                    try
+                    {
+                        fetchedNode.data!.message!.reply(`[t][ ${ user } ] ${ newMessage }`);
+                        return;
+                    }
+                    catch(err: unknown)
+                    {
+                        console.error(`Failed to reply to Discord message (ID %d)\nError: ${ err }`, fetchedNode.data!.message!.id);
+                    }
+                }
+
                 // We should (hopefully) not get stuck in a loop here due to our
                 // checks in discord.ts
-                bridge.targetDiscordChannel.send(`[t][${user}] ${message}`).then((discordMessage: Message<boolean>) => 
+                bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
                 {
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
@@ -115,19 +150,23 @@ function registerTwitch(): void
                     const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, listNode);
                     bridge.discordTwitchCacheMap.set(discordMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(discordMessage.id, listNode);
 
                     //Count upwards and delete the oldest message if need be
                     manageMsgCache();
                 }, genericPromiseError);
+            }
 
-            if (bridge.twitchMessageSearchCache[message]) 
+            if(bridge.twitchMessageSearchCache[newMessage])
             {
-                const existingNode = bridge.twitchMessageSearchCache[message],
+                const existingNode = bridge.twitchMessageSearchCache[newMessage],
                     twitchMessage = new twitchMsg(message, true, userState, channel);
 
-                existingNode.data.twitchArray.push(twitchMessage);
+                existingNode.data!.twitchArray.push(twitchMessage);
                 bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
+                bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, existingNode);
 
                 //Remove this from the cache since we found it
                 delete bridge.twitchMessageSearchCache[message];

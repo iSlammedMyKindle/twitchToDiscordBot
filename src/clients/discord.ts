@@ -1,3 +1,4 @@
+import { PrivateMessage } from '@twurple/chat';
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
 import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
@@ -29,7 +30,7 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
 
 function registerDiscord(): void 
 {
-    discordClient.on('messageCreate', (m: Message<boolean>) =>
+    discordClient.on('messageCreate', async (m: Message<boolean>) =>
     {
         if(m.author.bot || m.guild === null)
             return;
@@ -82,8 +83,9 @@ function registerDiscord(): void
         const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
         //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-        const listNode: linkedListNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
+        const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
         bridge.discordTwitchCacheMap.set(m, listNode);
+        bridge.discordTwitchCacheMap.set(m.id, listNode);
 
         //COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
         //We need consistent keys in order to properly map all twitch chunks back to the original discord message
@@ -92,18 +94,47 @@ function registerDiscord(): void
             bridge.twitchMessageSearchCache[msg] = listNode;
 
         let currIndex: number = 0;
-        const recursiveSend = (): void =>
+        function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: PrivateMessage; }): void
         {
-            if(currIndex < chunkedTwitchMessages.length)
-                bridge.twitch.authChatClient!.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(() =>
-                {
-                    currIndex++;
-                    //tmijs does this in their own version of sending multiple messages... therefore we must also follow this jank method
-                    setTimeout(() => recursiveSend(), 250);
-                });
-        };
+            // I don't know what to name this.
+            function incrementAndStuff(): void
+            {
+                currIndex++;
+                setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
+            }
 
-        recursiveSend();
+            if(currIndex < chunkedTwitchMessages.length)
+                reply?.userState
+                    ?
+                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
+                        replyTo: reply.userState
+                    }).then(incrementAndStuff)
+                    :
+                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
+        }
+
+
+        if(m.type === 'REPLY')
+        {
+            const fetchedMessageReply: Message<boolean> = await m.fetchReference();
+            // The Twitch message of the Discord message we replied to.
+            // Going based off of IDs due to the fact that the Mesasge object will be different
+            // if it's a reply.
+            const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
+
+            // We are only going to reply to the first Twitch message element, due to the fact it makes
+            // no difference to which we reply to.
+            // Cause it will always respond to the "starting" reply message one.
+
+            recursiveSend(chunkedTwitchMessages, {
+                userState: replyNode?.data!.twitchArray[0]?.userState as PrivateMessage || null
+            });
+
+            manageMsgCache();
+            return;
+        }
+
+        recursiveSend(chunkedTwitchMessages);
 
         //Count upwards and delete the oldest message if need be
         manageMsgCache();
