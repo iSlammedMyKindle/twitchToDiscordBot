@@ -1,18 +1,15 @@
 {
     "DEV_TWITCH_TOKEN": false,
-    "T2D_USER": "",
     "T2D_BOT_USERNAME": "",
     "T2D_CLIENT_ID": "",
     "T2D_SECRET": "",
-    "T2D_CHANNELS": [
-        ""
-    ],
+    "T2D_CHANNELS": [""],
     "T2D_SCOPE": "chat:read chat:edit channel:moderate",
     "T2D_REDIRECT_URI": "http://localhost:3000",
     "T2D_DISCORD_CHANNEL": "",
     "T2D_DISCORD_TOKEN": "",
     "T2D_HTTPS": {
-        "enabled": false,
+        "enabled": true,
         "keyPath": "./sslCertificate/twitchToDiscord.pass.key",
         "certPath": "./sslCertificate/twitchToDiscord.crt",
         "passphrase": "1234"
