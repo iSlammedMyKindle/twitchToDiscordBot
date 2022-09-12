@@ -4,7 +4,7 @@ import { authenticateTwitch, AuthResponse } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
-import { PrivateMessage } from '@twurple/chat';
+import { ClearMsg, PrivateMessage } from '@twurple/chat';
 import { ChatClient } from '@twurple/chat';
 import { linkedListNode } from 'src/linkedList';
 
@@ -153,6 +153,21 @@ function registerTwitch(): void
                 //Remove this from the cache since we found it
                 delete bridge.twitchMessageSearchCache[message];
             }
+        });
+
+
+        // eslint-disable-next-line no-unused-vars
+        bridge.twitch.anonChatClient?.onMessageRemove((_channel: string, id: string, _message: ClearMsg) =>
+        {
+            const linkedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(id);
+
+            if(!linkedNode)
+                return;
+
+            if(linkedNode.data?.message?.deletable)
+                linkedNode.data.message.delete();
+
+            manageMsgCache(linkedNode);
         });
     }
 
