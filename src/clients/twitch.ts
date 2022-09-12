@@ -84,7 +84,7 @@ function registerTwitch(): void
             if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
-            const newMessage: string = message.replace(new RegExp(`@([A-Za-z])\\w+ `), '');
+            const newMessage: string = message.replace(/@([A-Za-z])\w+/, '');
 
             // If the person who sent the message's name isn't equal to the bot's name
             // then send the Discord message.
