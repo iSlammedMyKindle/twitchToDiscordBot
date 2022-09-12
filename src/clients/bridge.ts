@@ -1,6 +1,6 @@
 import { TextChannel } from 'discord.js';
 import { linkedListNode, nodeInterface } from '../linkedList';
-import { twitchMsg } from '../messageObjects';
+import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { ChatClient } from '@twurple/chat';
 import configFile from '../../config.json';
 
@@ -26,12 +26,12 @@ const Bridge = {
     currMsgCount: 0 as number,
     targetDiscordChannel: undefined as TextChannel | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
-    twitchMessageSearchCache: {} as { [key: string]: linkedListNode; },
+    twitchMessageSearchCache: {} as { [key: string]: linkedListNode<conjoinedMsg>; },
     messageLinkdListInterface: new nodeInterface() as nodeInterface,
 };
 
 
-function manageMsgCache(specificNode?: linkedListNode): null | linkedListNode
+function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | linkedListNode<conjoinedMsg>
 {
     if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE)
     {
@@ -41,16 +41,16 @@ function manageMsgCache(specificNode?: linkedListNode): null | linkedListNode
 
     //Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
     if(!specificNode)
-        specificNode = Bridge.messageLinkdListInterface.beginningNode as linkedListNode; //Garbage collection takes care of this, so need to run delete
+        specificNode = Bridge.messageLinkdListInterface.beginningNode as linkedListNode<conjoinedMsg>; //Garbage collection takes care of this, so need to run delete
 
     Bridge.messageLinkdListInterface.rebindForDelete(specificNode);
 
-    if(specificNode.data.twitchArray.length)
+    if(specificNode.data?.twitchArray.length)
         for(const item of specificNode.data.twitchArray)
             Bridge.discordTwitchCacheMap.delete(item);
 
-    if(specificNode.data.discord)
-        Bridge.discordTwitchCacheMap.delete(specificNode.data.discord);
+    if(specificNode.data?.message)
+        Bridge.discordTwitchCacheMap.delete(specificNode.data!.message);
 
     return specificNode;
 }
