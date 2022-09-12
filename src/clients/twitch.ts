@@ -102,7 +102,6 @@ function registerTwitch(): void
 
                 // if there is a reply parent display name
                 // we know it's a reply.
-                // we should not get here if 
                 if(userState.tags.get('reply-parent-display-name'))
                 {
                     // get the linked list node from the Twitch ID that was replied to
