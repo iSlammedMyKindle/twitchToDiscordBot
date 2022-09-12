@@ -19,7 +19,6 @@ function registerTwitch(): void
     */
     async function loginToTwitch(): Promise<void>
     {
-        //TODO: detect replies by looking at previously recorded messages (userState["reply-parent-msg-id"])
         let tokenData: AuthResponse;
 
         try
