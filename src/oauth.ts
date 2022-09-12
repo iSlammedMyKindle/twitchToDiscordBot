@@ -84,7 +84,7 @@ const listenForTwitch = (url: string, useHttps: boolean = false) => new Promise(
         res.write('<h1>Hi there, the app should be authenticated now!</h1>');
         res.end();
         tempServer.close();
-        resolve(new URL(req.url as string, url).searchParams);
+        resolve(new URL(req.url, url).searchParams);
     };
 
     const tempServer = useHttps ? https.createServer({
