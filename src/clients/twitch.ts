@@ -84,6 +84,7 @@ function registerTwitch(): void
             if(!bridge.targetDiscordChannel)
                 throw new Error('Cannot find Discord channel.');
 
+            const newMessage: string = message.replace(new RegExp(`@([A-Za-z])\\w+ `), '');
 
             // If the person who sent the message's name isn't equal to the bot's name
             // then send the Discord message.
@@ -102,6 +103,7 @@ function registerTwitch(): void
 
                 // if there is a reply parent display name
                 // we know it's a reply.
+                // we should not get here if 
                 if(userState.tags.get('reply-parent-display-name'))
                 {
                     // get the linked list node from the Twitch ID that was replied to
@@ -112,7 +114,7 @@ function registerTwitch(): void
 
                     try
                     {
-                        fetchedNode.data!.message!.reply(`[t][ ${ user } ] ${ message }`);
+                        fetchedNode.data!.message!.reply(`[t][ ${ user } ] ${ newMessage }`);
                         return;
                     }
                     catch(err: unknown)
@@ -123,7 +125,7 @@ function registerTwitch(): void
 
                 // We should (hopefully) not get stuck in a loop here due to our
                 // checks in discord.ts
-                bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
+                bridge.targetDiscordChannel.send(`[t][${ user }] ${ newMessage }`).then((discordMessage: Message<boolean>) =>
                 {
                     //Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
 
@@ -134,18 +136,19 @@ function registerTwitch(): void
                     bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                     bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, listNode);
                     bridge.discordTwitchCacheMap.set(discordMessage, listNode);
+                    bridge.discordTwitchCacheMap.set(discordMessage.id, listNode);
 
                     //Count upwards and delete the oldest message if need be
                     manageMsgCache();
                 }, genericPromiseError);
-
             }
 
-            if(bridge.twitchMessageSearchCache[message])
+            if(bridge.twitchMessageSearchCache[newMessage])
             {
-                const existingNode = bridge.twitchMessageSearchCache[message],
+                const existingNode = bridge.twitchMessageSearchCache[newMessage],
                     twitchMessage = new twitchMsg(message, true, userState, channel);
 
+                console.log('bound message');
                 existingNode.data!.twitchArray.push(twitchMessage);
                 bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
                 bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, existingNode);

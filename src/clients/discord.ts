@@ -85,6 +85,7 @@ function registerDiscord(): void
         //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
         const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
         bridge.discordTwitchCacheMap.set(m, listNode);
+        bridge.discordTwitchCacheMap.set(m.id, listNode);
 
         //COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
         //We need consistent keys in order to properly map all twitch chunks back to the original discord message
@@ -103,11 +104,12 @@ function registerDiscord(): void
             }
 
             if(currIndex < chunkedTwitchMessages.length)
-                reply?.userState ?
+                reply?.userState
+                    ?
                     bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
                         replyTo: reply.userState
                     }).then(incrementAndStuff)
-                :
+                    :
                     bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
         }
 
@@ -116,16 +118,19 @@ function registerDiscord(): void
         {
             const fetchedMessageReply: Message<boolean> = await m.fetchReference();
             // The Twitch message of the Discord message we replied to.
-            const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply);
+            // Going based off of IDs due to the fact that the Mesasge object will be different
+            // if it's a reply.
+            const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
 
             // We are only going to reply to the first Twitch message element, due to the fact it makes
             // no difference to which we reply to.
             // Cause it will always respond to the "starting" reply message one.
 
             recursiveSend(chunkedTwitchMessages, {
-                userState: replyNode?.data!.twitchArray[0].userState as PrivateMessage ?? null
+                userState: replyNode?.data!.twitchArray[0]?.userState as PrivateMessage || null
             });
 
+            manageMsgCache();
             return;
         }
 
