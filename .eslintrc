@@ -1,7 +1,6 @@
 {
     "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended"
+        "plugin:@typescript-eslint/recommended"
     ],
     "root": true,
     "parser": "@typescript-eslint/parser",
@@ -22,6 +21,82 @@
             {
                 "allowTemplateLiterals": true
             }
+        ],
+        "no-nested-ternary": [
+            2
+        ],
+        "eqeqeq": [
+            2
+        ],
+        "no-var": [
+            2
+        ],
+        "semi": [
+            2
+        ],
+        "semi-style": [
+            2,
+            "last"
+        ],
+        "semi-spacing": [
+            2,
+            {
+                "before": false,
+                "after": true
+            }
+        ],
+        // Enforces 4 spaces instead of a tab.
+        "indent": [
+            2
+        ],
+        // Requires a default: case in a switch statement.
+        "default-case": [
+            2
+        ],
+        // simple
+        "space-before-blocks": [
+            2
+        ],
+        // Requires a space after a comment.
+        "spaced-comment": [
+            2,
+            "always"
+        ],
+        // Stops the yoda statements!
+        "yoda": [
+            2
+        ],
+        
+
+
+        // typescript dumb stuff
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                "selector": [
+                    "variable",
+                    "function"
+                ],
+                // We use both pascal and camel in this project.
+                "format": [
+                    "camelCase",
+                    "PascalCase"
+                ]
+            }
+        ],
+        "@typescript-eslint/no-inferrable-types": [
+            0
+        ],
+        "@typescript-eslint/no-non-null-assertion": [
+            0
+        ],
+        "@typescript-eslint/no-explicit-any": [
+            0
+        ]
+    },
+    "parserOptions": {
+        "project": [
+            "./tsconfig.json"
         ]
     }
 }

@@ -12,8 +12,8 @@ interface request
 interface response
 {
     statusCode: number,
-    write: Function,
-    end: Function;
+    write: (message: string) => void,
+    end: () => void;
 }
 
 interface IParams
@@ -22,7 +22,7 @@ interface IParams
     scope?: string,
     redirect_uri?: string,
     client_secret?: string,
-    https?:IHttps
+    https?: IHttps;
 }
 
 interface IHttps
@@ -60,7 +60,7 @@ function underscoreToCammel(str: string): string
     let res: string = '';
     for(let i = 0; i < str.length; i++)
     {
-        if(str[i] == '_')
+        if(str[i] === '_')
         {
             res += str[i + 1].toUpperCase();
             i++;
@@ -71,7 +71,7 @@ function underscoreToCammel(str: string): string
     return res;
 }
 
-function objNamingConvert(obj: any): {}
+function objNamingConvert(obj: any): unknown
 {
     const res: any = {};
 
@@ -84,7 +84,7 @@ function objNamingConvert(obj: any): {}
 const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise((resolve, reject) =>
 {
 
-    //Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
+    // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
     const serverFunc = (req: request, res: response) =>
     {
         res.statusCode = 200;
@@ -139,7 +139,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
                 }
                 catch(e)
                 {
-                    //We can't log into twitch without a token...
+                    // We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);
                 }
             });

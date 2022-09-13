@@ -30,7 +30,6 @@ const Bridge = {
     messageLinkdListInterface: new nodeInterface() as nodeInterface,
 };
 
-
 function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | linkedListNode<conjoinedMsg>
 {
     if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE)
@@ -39,9 +38,9 @@ function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | lin
         return null;
     }
 
-    //Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
+    // Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
     if(!specificNode)
-        specificNode = Bridge.messageLinkdListInterface.beginningNode as linkedListNode<conjoinedMsg>; //Garbage collection takes care of this, so need to run delete
+        specificNode = Bridge.messageLinkdListInterface.beginningNode as linkedListNode<conjoinedMsg>; // Garbage collection takes care of this, so need to run delete
 
     Bridge.messageLinkdListInterface.rebindForDelete(specificNode);
 

@@ -13,13 +13,13 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
 
     for(let i: number = 0; i < message.length; i++)
     {
-        if(res[resIndex].length == 490)
+        if(res[resIndex].length === 490)
         {
             resIndex++;
             res[resIndex] = '';
         }
 
-        //If our current chunk comes after the first, and the current string is blank, add the continue symbol
+        // If our current chunk comes after the first, and the current string is blank, add the continue symbol
         if(resIndex && !res[resIndex]) res[resIndex] += contSymbol;
 
         res[resIndex] += message[i];
@@ -41,13 +41,13 @@ function registerDiscord(): void
         if(m.channel.id !== bridge.targetDiscordChannel.id)
             return;
 
-        //tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
+        // tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
         const discordHeader: string = `[d][${ m.author.tag }] `,
             foundIds: { [key: string]: boolean; } = {};
 
         let finalMessage: string = m.content;
 
-        //Grab the contents of the message, convert discord mentions into usernames for twitch to see
+        // Grab the contents of the message, convert discord mentions into usernames for twitch to see
         for(const mention of m.content.matchAll(/<@[0-9]{1,}>/g))
         {
             if(mention === null)
@@ -62,33 +62,33 @@ function registerDiscord(): void
             }
         }
 
-        //Also need to filter out custom emoji from discord; would be better to display the custom emoji name
+        // Also need to filter out custom emoji from discord; would be better to display the custom emoji name
         for(const customEmoji of m.content.matchAll(/<:[A-Za-z]{1,}:[0-9]{1,}>/g))
         {
             const emojiNameAndId: string[] = /[A-Za-z]{1,}:[0-9]{1,}/.exec(customEmoji[0])![0].split(':');
 
             if(!foundIds[emojiNameAndId[1]])
             {
-                //Replace the ID of the custom emoji with just it's name
+                // Replace the ID of the custom emoji with just it's name
                 foundIds[emojiNameAndId[1]] = true;
                 finalMessage = finalMessage.replaceAll(customEmoji[0], '[e]' + emojiNameAndId[0]);
             }
         }
 
 
-        //Include attachments inside the message if they are present on discord
+        // Include attachments inside the message if they are present on discord
         if(m.attachments?.size)
             finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
 
         const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
-        //Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
+        // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
         const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
         bridge.discordTwitchCacheMap.set(m, listNode);
         bridge.discordTwitchCacheMap.set(m.id, listNode);
 
-        //COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
-        //We need consistent keys in order to properly map all twitch chunks back to the original discord message
+        // COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
+        // We need consistent keys in order to properly map all twitch chunks back to the original discord message
         const chunkedTwitchMessages = chunkMessage(messageToSend);
         for(const msg of chunkedTwitchMessages)
             bridge.twitchMessageSearchCache[msg] = listNode;
@@ -136,7 +136,7 @@ function registerDiscord(): void
 
         recursiveSend(chunkedTwitchMessages);
 
-        //Count upwards and delete the oldest message if need be
+        // Count upwards and delete the oldest message if need be
         manageMsgCache();
     });
 
@@ -150,11 +150,11 @@ function registerDiscord(): void
         const messageFromCache = bridge.discordTwitchCacheMap.get(m);
         if(!messageFromCache) return;
 
-        //Assuming we found a message we deleted on discord, delete it on twitch too
+        // Assuming we found a message we deleted on discord, delete it on twitch too
         for(const i of messageFromCache.data.twitchArray)
             twitchDelete(i);
 
-        //Delete this conjoined message from all cache
+        // Delete this conjoined message from all cache
         manageMsgCache(messageFromCache);
     };
 
