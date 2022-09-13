@@ -33,7 +33,7 @@ class linkedListNode<Type>
 
     get beg(): any
     {
-        if(this.prev != null)
+        if(this.prev !== null)
             return this.prev.beg;
 
         return this;
@@ -41,7 +41,7 @@ class linkedListNode<Type>
 
     get end(): any
     {
-        if(this.next != null)
+        if(this.next !== null)
             return this.next.end;
 
         return this;
@@ -50,7 +50,7 @@ class linkedListNode<Type>
 
 class nodeInterface
 {
-    //The node that was last made using `addNode`; should always be the last node in the list.
+    // The node that was last made using `addNode`; should always be the last node in the list.
     public lastCreatedNode: linkedListNode<any> | undefined;
     public beginningNode: linkedListNode<any> | undefined;
 
@@ -75,10 +75,10 @@ class nodeInterface
         if(this.lastCreatedNode)
             this.lastCreatedNode.next = newNode;
 
-        //If this is our first node, set it as such
+        // If this is our first node, set it as such
         if(!this.beginningNode) this.beginningNode = newNode;
 
-        //Shift the last created node to our new one.
+        // Shift the last created node to our new one.
         this.lastCreatedNode = newNode;
 
         return newNode;
@@ -95,11 +95,11 @@ class nodeInterface
         if(targetNode.prev?.next)
             targetNode.prev.next = targetNode.next;
 
-        //If this is the last linked node in the list, grab it's previous node instead to make that the "lastCreatedNode" (credit - bevelled from twitch)
-        if(this.lastCreatedNode == targetNode)
+        // If this is the last linked node in the list, grab it's previous node instead to make that the "lastCreatedNode" (credit - bevelled from twitch)
+        if(this.lastCreatedNode === targetNode)
             this.lastCreatedNode = targetNode.prev;
 
-        if(this.beginningNode == targetNode)
+        if(this.beginningNode === targetNode)
             this.beginningNode = targetNode.next;
     }
 }
