@@ -28,159 +28,149 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
     return res;
 }
 
-function registerDiscord(): void 
+discordClient.on('messageCreate', async (m: Message<boolean>) =>
 {
-    discordClient.on('messageCreate', async (m: Message<boolean>) =>
+    if((m.author.bot || m.guild === null) ||
+        !bridge.targetDiscordChannel ||
+        m.channel.id !== bridge.targetDiscordChannel.id) return;
+
+    // tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
+    const discordHeader: string = `[d][${ m.author.tag }] `,
+        foundIds: { [key: string]: boolean; } = {};
+
+    let finalMessage: string = m.content;
+
+    // Grab the contents of the message, convert discord mentions into usernames for twitch to see
+    for(const mention of m.content.matchAll(/<@[0-9]{1,}>/g))
     {
-        if(m.author.bot || m.guild === null)
-            return;
+        if(mention === null)
+            continue;
 
-        if(!bridge.targetDiscordChannel)
-            return;
+        const discordId: string = /[0-9]{1,}/.exec(mention[0])![0];
 
-        if(m.channel.id !== bridge.targetDiscordChannel.id)
-            return;
-
-        // tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
-        const discordHeader: string = `[d][${ m.author.tag }] `,
-            foundIds: { [key: string]: boolean; } = {};
-
-        let finalMessage: string = m.content;
-
-        // Grab the contents of the message, convert discord mentions into usernames for twitch to see
-        for(const mention of m.content.matchAll(/<@[0-9]{1,}>/g))
+        if(!foundIds[discordId])
         {
-            if(mention === null)
-                continue;
+            foundIds[discordId] = true;
+            finalMessage = finalMessage.replaceAll(mention[0], '@[m]' + m.mentions.members!.get(discordId)!.user.tag);
+        }
+    }
 
-            const discordId: string = /[0-9]{1,}/.exec(mention[0])![0];
+    // Also need to filter out custom emoji from discord; would be better to display the custom emoji name
+    for(const customEmoji of m.content.matchAll(/<:[A-Za-z]{1,}:[0-9]{1,}>/g))
+    {
+        const emojiNameAndId: string[] = /[A-Za-z]{1,}:[0-9]{1,}/.exec(customEmoji[0])![0].split(':');
 
-            if(!foundIds[discordId])
-            {
-                foundIds[discordId] = true;
-                finalMessage = finalMessage.replaceAll(mention[0], '@[m]' + m.mentions.members!.get(discordId)!.user.tag);
-            }
+        if(!foundIds[emojiNameAndId[1]])
+        {
+            // Replace the ID of the custom emoji with just it's name
+            foundIds[emojiNameAndId[1]] = true;
+            finalMessage = finalMessage.replaceAll(customEmoji[0], '[e]' + emojiNameAndId[0]);
+        }
+    }
+
+
+    // Include attachments inside the message if they are present on discord
+    if(m.attachments?.size)
+        finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
+
+    const messageToSend: string = `${ discordHeader }${ finalMessage }`;
+
+    // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
+    const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
+    bridge.discordTwitchCacheMap.set(m, listNode);
+    bridge.discordTwitchCacheMap.set(m.id, listNode);
+
+    // COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
+    // We need consistent keys in order to properly map all twitch chunks back to the original discord message
+    const chunkedTwitchMessages = chunkMessage(messageToSend);
+    for(const msg of chunkedTwitchMessages)
+        bridge.twitchMessageSearchCache[msg] = listNode;
+
+    let currIndex: number = 0;
+    function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: PrivateMessage; }): void
+    {
+        // I don't know what to name this.
+        function incrementAndStuff(): void
+        {
+            currIndex++;
+            setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
         }
 
-        // Also need to filter out custom emoji from discord; would be better to display the custom emoji name
-        for(const customEmoji of m.content.matchAll(/<:[A-Za-z]{1,}:[0-9]{1,}>/g))
-        {
-            const emojiNameAndId: string[] = /[A-Za-z]{1,}:[0-9]{1,}/.exec(customEmoji[0])![0].split(':');
-
-            if(!foundIds[emojiNameAndId[1]])
-            {
-                // Replace the ID of the custom emoji with just it's name
-                foundIds[emojiNameAndId[1]] = true;
-                finalMessage = finalMessage.replaceAll(customEmoji[0], '[e]' + emojiNameAndId[0]);
-            }
-        }
+        if(currIndex < chunkedTwitchMessages.length)
+            reply?.userState
+                ?
+                bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
+                    replyTo: reply.userState
+                }).then(incrementAndStuff)
+                :
+                bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
+    }
 
 
-        // Include attachments inside the message if they are present on discord
-        if(m.attachments?.size)
-            finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
+    if(m.type === 'REPLY')
+    {
+        const fetchedMessageReply: Message<boolean> = await m.fetchReference();
+        // The Twitch message of the Discord message we replied to.
+        // Going based off of IDs due to the fact that the Mesasge object will be different
+        // if it's a reply.
+        const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
 
-        const messageToSend: string = `${ discordHeader }${ finalMessage }`;
+        // We are only going to reply to the first Twitch message element, due to the fact it makes
+        // no difference to which we reply to.
+        // Cause it will always respond to the "starting" reply message one.
 
-        // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-        const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
-        bridge.discordTwitchCacheMap.set(m, listNode);
-        bridge.discordTwitchCacheMap.set(m.id, listNode);
+        recursiveSend(chunkedTwitchMessages, {
+            userState: replyNode?.data!.twitchArray[0]?.userState as PrivateMessage || null
+        });
 
-        // COMPLETELY AND UTTERLY JANK METHOD of getting our own twitch messages because the version TMI version of this is inconsistent with it's message management
-        // We need consistent keys in order to properly map all twitch chunks back to the original discord message
-        const chunkedTwitchMessages = chunkMessage(messageToSend);
-        for(const msg of chunkedTwitchMessages)
-            bridge.twitchMessageSearchCache[msg] = listNode;
-
-        let currIndex: number = 0;
-        function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: PrivateMessage; }): void
-        {
-            // I don't know what to name this.
-            function incrementAndStuff(): void
-            {
-                currIndex++;
-                setTimeout(() => recursiveSend(chunkedTwitchMessages, reply ?? undefined), 250);
-            }
-
-            if(currIndex < chunkedTwitchMessages.length)
-                reply?.userState
-                    ?
-                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
-                        replyTo: reply.userState
-                    }).then(incrementAndStuff)
-                    :
-                    bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
-        }
-
-
-        if(m.type === 'REPLY')
-        {
-            const fetchedMessageReply: Message<boolean> = await m.fetchReference();
-            // The Twitch message of the Discord message we replied to.
-            // Going based off of IDs due to the fact that the Mesasge object will be different
-            // if it's a reply.
-            const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
-
-            // We are only going to reply to the first Twitch message element, due to the fact it makes
-            // no difference to which we reply to.
-            // Cause it will always respond to the "starting" reply message one.
-
-            recursiveSend(chunkedTwitchMessages, {
-                userState: replyNode?.data!.twitchArray[0]?.userState as PrivateMessage || null
-            });
-
-            manageMsgCache();
-            return;
-        }
-
-        recursiveSend(chunkedTwitchMessages);
-
-        // Count upwards and delete the oldest message if need be
         manageMsgCache();
-    });
+        return;
+    }
 
-    /**
-     * Message deletion event, if we have a Twitch OBJ bound to the Discord one already we delete the Twitch one.
-     * @param {Message<boolean> | PartialMessage} m
-     * @returns {void} Nothing.
-     */
-    const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
+    recursiveSend(chunkedTwitchMessages);
+
+    // Count upwards and delete the oldest message if need be
+    manageMsgCache();
+});
+
+/**
+* Message deletion event, if we have a Twitch OBJ bound to the Discord one already we delete the Twitch one.
+* @param {Message<boolean> | PartialMessage} m
+* @returns {void} Nothing.
+*/
+const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
+{
+    const messageFromCache = bridge.discordTwitchCacheMap.get(m);
+    if(!messageFromCache) return;
+
+    // Assuming we found a message we deleted on discord, delete it on twitch too
+    for(const i of messageFromCache.data.twitchArray)
+        twitchDelete(i);
+
+    // Delete this conjoined message from all cache
+    manageMsgCache(messageFromCache);
+};
+
+discordClient.on('messageDelete', discordOnMesgDel);
+
+discordClient.on('messageDeleteBulk', (messages: Collection<string, Message<boolean> | PartialMessage>) =>
+{
+    for(const mesgKeyValue of messages)
+        discordOnMesgDel(mesgKeyValue[1]);
+});
+
+discordClient.login(configFile.T2D_DISCORD_TOKEN).then(
+    async () =>
     {
-        const messageFromCache = bridge.discordTwitchCacheMap.get(m);
-        if(!messageFromCache) return;
+        console.log('Discord bot is live!', discordClient.user!.tag);
 
-        // Assuming we found a message we deleted on discord, delete it on twitch too
-        for(const i of messageFromCache.data.twitchArray)
-            twitchDelete(i);
+        const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(configFile.T2D_DISCORD_CHANNEL);
+        if(!fetchChannel || !fetchChannel.isText())
+            throw new Error('Text channel fetched with ID (' + configFile.T2D_DISCORD_CHANNEL + ') is not a text channel.');
 
-        // Delete this conjoined message from all cache
-        manageMsgCache(messageFromCache);
-    };
-
-    discordClient.on('messageDelete', discordOnMesgDel);
-
-    discordClient.on('messageDeleteBulk', (messages: Collection<string, Message<boolean> | PartialMessage>) =>
-    {
-        for(const mesgKeyValue of messages)
-            discordOnMesgDel(mesgKeyValue[1]);
-    });
-
-    discordClient.login(configFile.T2D_DISCORD_TOKEN).then(
-        async () =>
-        {
-            console.log('Discord bot is live!', discordClient.user!.tag);
-
-            const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(configFile.T2D_DISCORD_CHANNEL);
-            if(!fetchChannel || !fetchChannel.isText())
-                throw new Error('Text channel fetched with ID (' + configFile.T2D_DISCORD_CHANNEL + ') is not a text channel.');
-
-            // Cast is there to convert it from any text channel into a TextChannel
-            // we already make sure that it is a text channel, and if it isn't we throw
-            // and error above (:
-            bridge.targetDiscordChannel = fetchChannel as TextChannel;
-        }
-    );
-}
-
-export default registerDiscord;
+        // Cast is there to convert it from any text channel into a TextChannel
+        // we already make sure that it is a text channel, and if it isn't we throw
+        // and error above (:
+        bridge.targetDiscordChannel = fetchChannel as TextChannel;
+    }
+);

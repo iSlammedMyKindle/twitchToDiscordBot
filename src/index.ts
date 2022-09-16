@@ -1,5 +1,2 @@
-import registerTwitch from './clients/twitch';
-import registerDiscord from './clients/discord';
-
-registerTwitch();
-registerDiscord();
+import './clients/twitch';
+import './clients/discord';
