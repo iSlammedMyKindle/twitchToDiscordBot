@@ -33,7 +33,7 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
  * Uses `random-seed` to create a consistent hash. This cna be used for discord ids to obscure who's talking for privacy reasons.
  * @param input Number that we're wanting to obscure
  */
-const obscureString = (input: string):number=> rng.create(input + (process.env?.T2D_CLIENT_ID || configFile?.T2D_CLIENT_ID)).random();
+const obscureString = (input: string): number => rng.create(input + (process.env?.T2D_CLIENT_ID || configFile?.T2D_CLIENT_ID)).random();
 
 discordClient.on('messageCreate', async (m: Message<boolean>) =>
 {
