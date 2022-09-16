@@ -1,6 +1,6 @@
 # Twitch To Discord
 
-Welecome! This is one of the scraps that are helping to run my Discord server. The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
+Welecome!The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
 
 This file is designed to provided an overview of how to get the bot setup yourself on a custom environment.
 
@@ -52,3 +52,8 @@ Environment variables will have the same syntax for the most part just like in t
 * `T2D_HTTPS_KEYPATH` - where your .key is for the ssl certificate
 * `T2D_HTTPS_CERTPATH` - the path for the .crt
 * `T2D_HTTPS_PASSPHRASE` - the passphrase for the .crt
+
+# Credits
+
+@iSlammedMyKindle - Codebase owner
+@AceLikesGhosts - converting the project to TS, replies, converting the project *again*, but instead from tmi.js to twurple
