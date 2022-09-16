@@ -1,6 +1,6 @@
 # Twitch To Discord
 
-Welecome!The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
+Welecome! The goal of this bot is to combine the abilities of Discord and Twitch, and allow both chats to communicate between eachother.
 
 This file is designed to provided an overview of how to get the bot setup yourself on a custom environment.
 
