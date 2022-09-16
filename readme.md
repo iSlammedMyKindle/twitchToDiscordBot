@@ -55,5 +55,5 @@ Environment variables will have the same syntax for the most part just like in t
 
 # Credits
 
-@iSlammedMyKindle - Codebase owner
-@AceLikesGhosts - converting the project to TS, replies, converting the project *again*, but instead from tmi.js to twurple
+* @iSlammedMyKindle - Codebase owner
+* @AceLikesGhosts - converting the project to TS, replies, converting the project *again*, but instead from tmi.js to twurple
