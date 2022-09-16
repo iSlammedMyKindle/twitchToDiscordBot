@@ -2,7 +2,7 @@ import { PrivateMessage } from '@twurple/chat';
 import { Message } from 'discord.js';
 
 /* Made by iSlammedMyKindle in 2022!
-The conjoined message object, it holds the link between a discord and twitch message. We use this to potentially make edits and deletions to messages*/
+The conjoined message object, it holds the link between a discord and twitch message. We use this to potentially make edits and deletions to messages */
 
 class conjoinedMsg
 {

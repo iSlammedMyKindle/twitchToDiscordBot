@@ -118,14 +118,14 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     if(m.type === 'REPLY')
     {
         const fetchedMessageReply: Message<boolean> = await m.fetchReference();
-        // The Twitch message of the Discord message we replied to.
-        // Going based off of IDs due to the fact that the Mesasge object will be different
-        // if it's a reply.
+        /* The Twitch message of the Discord message we replied to.
+        Going based off of IDs due to the fact that the Mesasge object will be different
+        if it's a reply. */
         const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
 
-        // We are only going to reply to the first Twitch message element, due to the fact it makes
-        // no difference to which we reply to.
-        // Cause it will always respond to the "starting" reply message one.
+        /* We are only going to reply to the first Twitch message element, due to the fact it makes
+        no difference to which we reply to.
+        Cause it will always respond to the "starting" reply message one. */
 
         recursiveSend(chunkedTwitchMessages, {
             userState: replyNode?.data!.twitchArray[0]?.userState as PrivateMessage || null
@@ -176,9 +176,9 @@ discordClient.login(configFile.T2D_DISCORD_TOKEN).then(
         if(!fetchChannel || !fetchChannel.isText())
             throw new Error('Text channel fetched with ID (' + configFile.T2D_DISCORD_CHANNEL + ') is not a text channel.');
 
-        // Cast is there to convert it from any text channel into a TextChannel
-        // we already make sure that it is a text channel, and if it isn't we throw
-        // and error above (:
+        /* Cast is there to convert it from any text channel into a TextChannel
+        we already make sure that it is a text channel, and if it isn't we throw
+        and error above (: */
         bridge.targetDiscordChannel = fetchChannel as TextChannel;
     }
 );

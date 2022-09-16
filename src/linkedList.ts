@@ -63,7 +63,6 @@ class nodeInterface
     }
 
     /**
-     * 
      * @param {*} data - the data that will be inserted into the new linked list node.
      * @returns The new node that was created, it will also be placed inside `lastCreatedNode`
      */
