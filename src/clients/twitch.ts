@@ -132,7 +132,7 @@ function registerTwitch(): void
 
                     try
                     {
-                        fetchedNode.data?.message?.reply(`[t][ ${ user } ] ${ newMessage }`);
+                        fetchedNode.data?.message?.reply(`[t][${ user }] ${ newMessage }`);
                         return;
                     }
                     catch(err: unknown)
