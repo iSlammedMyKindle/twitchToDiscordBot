@@ -9,10 +9,12 @@
     "@twurple/chat": "^5.2.3",
     "discord.js": "^13.8.1",
     "open": "^8.4.0",
+    "random-seed": "^0.3.0",
     "typescript": "^4.8.2"
   },
   "devDependencies": {
     "@types/node": "^18.7.13",
+    "@types/random-seed": "^0.3.3",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "eslint": "^8.23.0",

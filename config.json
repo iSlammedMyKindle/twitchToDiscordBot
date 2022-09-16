@@ -7,6 +7,7 @@
     "T2D_CHANNELS": [
         ""
     ],
+    "T2D_OBSCURE_TOKEN": true,
     "T2D_SCOPE": "chat:read chat:edit channel:moderate",
     "T2D_REDIRECT_URI": "http://localhost:3000",
     "T2D_DISCORD_CHANNEL": "",

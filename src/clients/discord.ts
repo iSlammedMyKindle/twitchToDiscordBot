@@ -3,6 +3,7 @@ import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } 
 import { linkedListNode } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
 import bridge, { configFile, manageMsgCache, twitchDelete } from './bridge';
+import rng from 'random-seed';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
@@ -28,6 +29,12 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
     return res;
 }
 
+/**
+ * Uses `random-seed` to create a consistent hash. This cna be used for discord ids to obscure who's talking for privacy reasons.
+ * @param input Number that we're wanting to obscure
+ */
+const obscureString = (input: string):number=> rng.create(input + (process.env?.T2D_CLIENT_ID || configFile?.T2D_CLIENT_ID)).random();
+
 discordClient.on('messageCreate', async (m: Message<boolean>) =>
 {
     if((m.author.bot || m.guild === null) ||
@@ -35,7 +42,8 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         m.channel.id !== bridge.targetDiscordChannel.id) return;
 
     // tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
-    const discordHeader: string = `[d][${ m.author.tag }] `,
+    const obscureTag = process.env?.T2D_OBSCURE_TAG || configFile?.T2D_OBSCURE_TAG;
+    const discordHeader: string = `[d][${ obscureTag ? m.author.username+'~'+((obscureString(m.author.discriminator) * 1000)).toFixed() :  m.author.tag }] `,
         foundIds: { [key: string]: boolean; } = {};
 
     let finalMessage: string = m.content;
