@@ -81,6 +81,14 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     if(m.attachments?.size)
         finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
 
+    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : configFile.T2D_DISCORD_CHAR_LIMIT) || 4000;
+
+    if(finalMessage.length > charLimit)
+    {
+        m.reply('It looks liket this message went over the ' + charLimit + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
+        finalMessage = finalMessage.substring(0, charLimit as number) + '[...]';
+    }
+
     const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
     // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
