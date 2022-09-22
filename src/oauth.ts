@@ -59,7 +59,7 @@ function underscoreToCammel(str: string): string
     return res;
 }
 
-function objNamingConvert(obj: any): unknown
+function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
 {
     const res: any = {};
 
@@ -131,7 +131,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
             {
                 try
                 {
-                    resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as AuthResponse);
+                    resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as any as AuthResponse);
                 }
                 catch (e)
                 {
