@@ -1,20 +1,8 @@
 import https from 'https';
 import open from 'open';
 import fs from 'fs';
-import http, { RequestListener } from 'http';
+import http, { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { URL } from 'url';
-
-interface request
-{
-    url: string;
-}
-
-interface response
-{
-    statusCode: number,
-    write: (message: string) => void,
-    end: () => void;
-}
 
 interface IParams
 {
@@ -58,9 +46,9 @@ interface AuthResponse
 function underscoreToCammel(str: string): string
 {
     let res: string = '';
-    for(let i = 0; i < str.length; i++)
+    for (let i = 0; i < str.length; i++)
     {
-        if(str[i] === '_')
+        if (str[i] === '_')
         {
             res += str[i + 1].toUpperCase();
             i++;
@@ -75,23 +63,31 @@ function objNamingConvert(obj: any): unknown
 {
     const res: any = {};
 
-    for(const i in obj)
+    for (const i in obj)
         res[underscoreToCammel(i)] = obj[i];
 
     return res;
 }
 
-const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise((resolve, reject) =>
+const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null, finishedPagePath?: string) => new Promise(async (resolve, reject) =>
 {
+    let page: string = '<h1>Hi there, the app should be authenticated now!</h1>';
+
+    if (finishedPagePath)
+        import(finishedPagePath)
+            .then((contents) =>
+            {
+                page = contents;
+            });
 
     // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
-    const serverFunc = (req: request, res: response) =>
+    const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
     {
         res.statusCode = 200;
-        res.write('<h1>Hi there, the app should be authenticated now!</h1>');
+        res.write(page);
         res.end();
         tempServer.close();
-        resolve(new URL(req.url, url).searchParams);
+        resolve(new URL(req.url!, url).searchParams);
     };
 
     const tempServer = httpsParams?.use_https ? https.createServer({
@@ -115,7 +111,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
     {
         open(targetUrl);
     }
-    catch(e)
+    catch (e)
     {
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
@@ -137,7 +133,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
                 {
                     resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as AuthResponse);
                 }
-                catch(e)
+                catch (e)
                 {
                     // We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);
