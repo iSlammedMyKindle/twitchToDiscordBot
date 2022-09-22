@@ -33,7 +33,7 @@ function chunkMessage(message: string = '', contSymbol: string = '[...]')
  * Uses `random-seed` to create a consistent hash. This cna be used for discord ids to obscure who's talking for privacy reasons.
  * @param input Number that we're wanting to obscure
  */
-const obscureString = (input: string):number=> rng.create(input + (process.env?.T2D_CLIENT_ID || configFile?.T2D_CLIENT_ID)).random();
+const obscureString = (input: string): number => rng.create(input + (process.env?.T2D_CLIENT_ID || configFile?.T2D_CLIENT_ID)).random();
 
 discordClient.on('messageCreate', async (m: Message<boolean>) =>
 {
@@ -80,6 +80,14 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     // Include attachments inside the message if they are present on discord
     if(m.attachments?.size)
         finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
+
+    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : configFile.T2D_DISCORD_CHAR_LIMIT) || 4000;
+
+    if(finalMessage.length > charLimit)
+    {
+        m.reply('It looks liket this message went over the ' + charLimit + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
+        finalMessage = finalMessage.substring(0, charLimit as number) + '[...]';
+    }
 
     const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 

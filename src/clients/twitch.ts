@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ClearMsg, PrivateMessage } from '@twurple/chat';
 import { ChatClient } from '@twurple/chat';
-import { linkedListNode } from 'src/linkedList';
+import { linkedListNode } from '../linkedList';
 
 // Twitch init
 // ///////////
@@ -83,10 +83,10 @@ async function loginToTwitch(): Promise<void>
             tokenData! as never || await authenticateTwitch(configData)
     );
 
+    // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
     bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
     bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [configFile.T2D_CHANNELS[0]] });
 
-    // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
     bridge.twitch.authChatClient.connect().then(() =>
         console.log('Authenticated Twitch Client has connected')
     );
