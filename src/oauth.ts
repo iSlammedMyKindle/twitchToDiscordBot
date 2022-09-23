@@ -19,6 +19,7 @@ interface IHttps
     key_path?: string,
     cert_path?: string,
     passphrase?: string,
+    auth_page_path?: string;
 }
 
 /**
@@ -46,9 +47,9 @@ interface AuthResponse
 function underscoreToCammel(str: string): string
 {
     let res: string = '';
-    for (let i = 0; i < str.length; i++)
+    for(let i = 0; i < str.length; i++)
     {
-        if (str[i] === '_')
+        if(str[i] === '_')
         {
             res += str[i + 1].toUpperCase();
             i++;
@@ -63,18 +64,18 @@ function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
 {
     const res: any = {};
 
-    for (const i in obj)
+    for(const i in obj)
         res[underscoreToCammel(i)] = obj[i];
 
     return res;
 }
 
-const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null, finishedPagePath?: string) => new Promise(async (resolve, reject) =>
+const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise(async (resolve, reject) =>
 {
     let page: string = '<h1>Hi there, the app should be authenticated now!</h1>';
 
-    if (finishedPagePath)
-        import(finishedPagePath)
+    if(httpsParams && httpsParams.auth_page_path)
+        import(httpsParams.auth_page_path)
             .then((contents) =>
             {
                 page = contents;
@@ -111,7 +112,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
     {
         open(targetUrl);
     }
-    catch (e)
+    catch(e)
     {
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
@@ -133,7 +134,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
                 {
                     resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as any as AuthResponse);
                 }
-                catch (e)
+                catch(e)
                 {
                     // We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);

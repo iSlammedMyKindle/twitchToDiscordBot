@@ -16,6 +16,7 @@
         "ENABLED":true,
         "KEYPATH": "./sslCertificate/twitchToDiscord.pass.key",
         "CERTPATH": "./sslCertificate/twitchToDiscord.crt",
-        "PASSPHRASE": "1234"
+        "PASSPHRASE": "1234",
+        "AUTH_PAGE_PATH": "./public/auth.html"
     }
 }
