@@ -80,7 +80,12 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
         if(httpsParams && httpsParams.auth_page_path)
             readFileSync(httpsParams.auth_page_path);
         else
-            readFileSync(join(__dirname, '..', 'public', 'auth.html'));
+        {
+            let page: Buffer = readFileSync(join(__dirname, '..', 'public', 'auth.html'));
+
+            if(!page)
+                page = Buffer.from('<h1>Successfully authencated</h1>', 'utf8');
+        }
 
         // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
         const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
@@ -160,6 +165,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
 }
 
 export default authenticateTwitch;
+export { startWebServer };
 export type {
     AuthResponse, IParams, IHttps
 };
