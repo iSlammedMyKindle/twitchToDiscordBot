@@ -156,11 +156,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
     });
 }
 
-export
-{
-    authenticateTwitch
-};
-
+export default authenticateTwitch;
 export type {
     AuthResponse, IParams, IHttps
 };

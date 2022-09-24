@@ -1,6 +1,6 @@
 import bridge, { genericPromiseError, configFile, manageMsgCache } from './bridge';
+import authenticateTwitch, { AuthResponse, IParams, IHttps } from '../oauth';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
-import { authenticateTwitch, AuthResponse, IParams, IHttps } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
