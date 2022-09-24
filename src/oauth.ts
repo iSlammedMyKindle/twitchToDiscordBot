@@ -63,7 +63,7 @@ function underscoreToCammel(str: string): string
 
 function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
 {
-    const res: any = {};
+    const res: Record<string, unknown> = {};
 
     for(const i in obj)
         res[underscoreToCammel(i)] = obj[i];
@@ -127,9 +127,9 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
             method: 'POST',
         }, res =>
         {
-            const resBuffer: any[] = [];
+            const resBuffer: Buffer[] = [];
 
-            res.on('data', chunk => resBuffer.push(chunk));
+            res.on('data', (chunk: Buffer) => resBuffer.push(chunk));
             res.on('end', () =>
             {
                 try
