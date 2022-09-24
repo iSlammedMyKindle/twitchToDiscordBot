@@ -134,7 +134,10 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
             {
                 try
                 {
-                    resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as unknown as AuthResponse);
+                    resolve(
+                        objNamingConvert(
+                            JSON.parse(Buffer.concat(resBuffer).toString())
+                        ) as unknown as AuthResponse);
                 }
                 catch(e)
                 {
