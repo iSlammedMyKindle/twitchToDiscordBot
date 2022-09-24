@@ -48,10 +48,11 @@ Run the build script with `npm run build`, then run `npm run start` and a link s
 
 Environment variables will have the same syntax for the most part just like in the `config.json`. However, there are some main differences when applying the https env's - which are listed below:
 
-* `T2D_HTTPS_ENABLED` - turn https on; use this in production!
-* `T2D_HTTPS_KEYPATH` - where your .key is for the ssl certificate
-* `T2D_HTTPS_CERTPATH` - the path for the .crt
-* `T2D_HTTPS_PASSPHRASE` - the passphrase for the .crt
+* `T2D_HTTPS_ENABLED` - Turn https on; use this in production!
+* `T2D_HTTPS_KEYPATH` - Where your .key is for the ssl certificate
+* `T2D_HTTPS_CERTPATH` - The path for the .crt
+* `T2D_HTTPS_PASSPHRASE` - The passphrase for the .crt
+* `T2D_AUTH_PAGE_PATH` - The direct path to the page you would like to show once you have authed. Keep null/undefined for default page.
 
 # Credits
 

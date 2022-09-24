@@ -1,8 +1,9 @@
 import https from 'https';
 import open from 'open';
-import fs from 'fs';
+import fs, { readFileSync } from 'fs';
 import http, { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { URL } from 'url';
+import { join } from 'path';
 
 interface IParams
 {
@@ -72,14 +73,12 @@ function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
 
 const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise(async (resolve, reject) =>
 {
-    let page: string = '<h1>Hi there, the app should be authenticated now!</h1>';
+    let page: Buffer | string;
 
     if(httpsParams && httpsParams.auth_page_path)
-        import(httpsParams.auth_page_path)
-            .then((contents) =>
-            {
-                page = contents;
-            });
+        readFileSync(httpsParams.auth_page_path);
+    else
+        readFileSync(join(__dirname, '..', 'public', 'auth.html'));
 
     // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
     const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
