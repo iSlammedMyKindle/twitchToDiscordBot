@@ -1,9 +1,9 @@
-import https from 'https';
-import open from 'open';
 import fs, { readFileSync } from 'fs';
 import http, { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { URL } from 'url';
 import { join } from 'path';
+import https from 'https';
+import open from 'open';
 
 interface IParams
 {
@@ -71,34 +71,37 @@ function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
     return res;
 }
 
-const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise(async (resolve, reject) =>
+function listenForTwitch(url: string | undefined, httpsParams: IHttps | null): Promise<URLSearchParams>
 {
-    let page: Buffer | string;
-
-    if(httpsParams && httpsParams.auth_page_path)
-        readFileSync(httpsParams.auth_page_path);
-    else
-        readFileSync(join(__dirname, '..', 'public', 'auth.html'));
-
-    // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
-    const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
+    return new Promise(async (resolve, reject) =>
     {
-        res.statusCode = 200;
-        res.write(page);
-        res.end();
-        tempServer.close();
-        resolve(new URL(req.url!, url).searchParams);
-    };
+        let page: Buffer | string;
 
-    const tempServer = httpsParams?.use_https ? https.createServer({
-        key: fs.readFileSync(httpsParams?.key_path || ''),
-        cert: fs.readFileSync(httpsParams?.cert_path || ''),
-        passphrase: httpsParams?.passphrase ?? ''
-    }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
+        if(httpsParams && httpsParams.auth_page_path)
+            readFileSync(httpsParams.auth_page_path);
+        else
+            readFileSync(join(__dirname, '..', 'public', 'auth.html'));
 
-    tempServer.listen(3000);
-    tempServer.on('error', e => reject(e));
-});
+        // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
+        const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
+        {
+            res.statusCode = 200;
+            res.write(page);
+            res.end();
+            tempServer.close();
+            resolve(new URL(req.url!, url).searchParams);
+        };
+
+        const tempServer = httpsParams?.use_https ? https.createServer({
+            key: fs.readFileSync(httpsParams?.key_path || ''),
+            cert: fs.readFileSync(httpsParams?.cert_path || ''),
+            passphrase: httpsParams?.passphrase ?? ''
+        }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
+
+        tempServer.listen(3000);
+        tempServer.on('error', e => reject(e));
+    });
+}
 
 async function authenticateTwitch(params: IParams): Promise<AuthResponse>
 {
