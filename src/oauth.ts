@@ -154,6 +154,11 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
     });
 }
 
+/**
+ * @description Fetch a page, from either a path VIA HTTPS parameters, or a default page VIA passing null.
+ * @param {IHTTPS | null} params The HTTPS parameters to check if there is an auth_page_path set. 
+ * @returns {Buffer | string} A buffer if a valid path is set, string for our default's backup.
+ */
 async function fetchPage(params: IHttps | null): Promise<Buffer | string>
 {
     return new Promise<Buffer | string>((res) =>
