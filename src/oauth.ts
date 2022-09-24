@@ -71,7 +71,7 @@ function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
     return res;
 }
 
-function listenForTwitch(url: string | undefined, httpsParams: IHttps | null): Promise<URLSearchParams>
+function startWebServer(url: string | undefined, httpsParams: IHttps | null): Promise<URLSearchParams>
 {
     return new Promise(async (resolve, reject) =>
     {
@@ -119,7 +119,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
 
-    const oauthParams: URLSearchParams = await listenForTwitch(params.redirect_uri, params.https || null);
+    const oauthParams: URLSearchParams = await startWebServer(params.redirect_uri, params.https || null);
     return new Promise((resolve, reject) =>
     {
         const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
