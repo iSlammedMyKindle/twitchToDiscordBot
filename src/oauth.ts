@@ -120,8 +120,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
         const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
             headers: { 'Content-Type': 'application/json' },
             method: 'POST',
-        }, 
-        (res: IncomingMessage) =>
+        }, (res: IncomingMessage) =>
         {
             const resBuffer: Buffer[] = [];
 
