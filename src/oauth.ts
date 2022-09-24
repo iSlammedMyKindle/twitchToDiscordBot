@@ -1,4 +1,4 @@
-import fs, { readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import http, { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { URL } from 'url';
 import { join } from 'path';
@@ -75,10 +75,10 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
 {
     return new Promise(async (resolve, reject) =>
     {
-        let page: Buffer | string;
+        let page: Buffer;
 
         if(httpsParams && httpsParams.auth_page_path)
-            readFileSync(httpsParams.auth_page_path);
+            page = readFileSync(httpsParams.auth_page_path);
         else
         {
             let page: Buffer = readFileSync(join(__dirname, '..', 'public', 'auth.html'));
@@ -98,8 +98,8 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
         };
 
         const tempServer = httpsParams?.use_https ? https.createServer({
-            key: fs.readFileSync(httpsParams?.key_path || ''),
-            cert: fs.readFileSync(httpsParams?.cert_path || ''),
+            key: readFileSync(httpsParams?.key_path || ''),
+            cert: readFileSync(httpsParams?.cert_path || ''),
             passphrase: httpsParams?.passphrase ?? ''
         }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
 
