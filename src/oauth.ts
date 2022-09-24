@@ -120,7 +120,8 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
         const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
             headers: { 'Content-Type': 'application/json' },
             method: 'POST',
-        }, res =>
+        }, 
+        (res: IncomingMessage) =>
         {
             const resBuffer: Buffer[] = [];
 
@@ -134,7 +135,7 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
                             JSON.parse(Buffer.concat(resBuffer).toString())
                         ) as unknown as AuthResponse);
                 }
-                catch(e)
+                catch(e: unknown)
                 {
                     // We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);
@@ -177,7 +178,6 @@ async function fetchPage(params: IHttps | null): Promise<Buffer | string>
         }
 
         // if there isnt an auth_page_path;
-        
         const path: string = join(__dirname, '..', 'public', 'auth.html');
 
         readFile(path, (err, data) =>
