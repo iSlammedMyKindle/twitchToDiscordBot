@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFile, readFileSync } from 'fs';
 import http, { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { URL } from 'url';
 import { join } from 'path';
@@ -75,22 +75,12 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
 {
     return new Promise(async (resolve, reject) =>
     {
-        let page: Buffer;
-
-        if(httpsParams && httpsParams.auth_page_path)
-            page = readFileSync(httpsParams.auth_page_path);
-        else
-        {
-            let page: Buffer = readFileSync(join(__dirname, '..', 'public', 'auth.html'));
-
-            if(!page)
-                page = Buffer.from('<h1>Successfully authencated</h1>', 'utf8');
-        }
+        const page = await fetchPage(httpsParams);
 
         // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
         const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
         {
-            res.statusCode = 200;
+            res.writeHead(200, { 'Content-Type': 'html' });
             res.write(page);
             res.end();
             tempServer.close();
@@ -161,6 +151,40 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
         }));
 
         oauthReq.end();
+    });
+}
+
+async function fetchPage(params: IHttps | null): Promise<Buffer | string>
+{
+    return new Promise<Buffer | string>((res) =>
+    {
+        if(params && params.auth_page_path)
+        {
+            readFile(params.auth_page_path, (err, data) =>
+            {
+                // If there is an error, run this function again but without any value, so we can
+                // scuffly get our default page (:
+                if(err)
+                    res(fetchPage(null));
+
+                res(data);
+            });
+        }
+
+        // if there isnt an auth_page_path;
+        
+        const path: string = join(__dirname, '..', 'public', 'auth.html');
+
+        readFile(path, (err, data) =>
+        {
+            if(err)
+            {
+                console.log('Failed to get default page at path: ' + path + '. Using backup of our default!');
+                res('<h1>Successfully authed</h1>');
+            }
+
+            res(data);
+        });
     });
 }
 
