@@ -59,7 +59,13 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         if(!foundIds[discordId])
         {
             foundIds[discordId] = true;
-            finalMessage = finalMessage.replaceAll(mention[0], '@[m]' + m.mentions.members!.get(discordId)!.user.tag);
+            let usrStr: string;
+            const targetUser = m.mentions.members!.get(discordId)!.user;
+            if(obscureTag)
+                usrStr = targetUser.username + '~' + ((obscureString(m.author.discriminator) * 1000)).toFixed();
+            else usrStr = targetUser.tag;
+            
+            finalMessage = finalMessage.replaceAll(mention[0], '@[m]' + usrStr);
         }
     }
 
