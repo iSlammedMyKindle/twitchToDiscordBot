@@ -26,7 +26,7 @@ Another note is that if you try to deploy on a web server outside your local mac
 1. Visit the [Discord developer portal](https://discord.com/developers/applications); you'll find a button that says "new application", so click that
 1. Set the name to whatever you like
 1. navigate to your bot, click "Bot", then create the bot using the discord prompts
-1. The main item you need here is the discord token, which will go into `config.json` -> `T2S_DISCORD_TOKEN`
+1. The main item you need here is the discord token, which will go into `config.json` -> `T2D_DISCORD_TOKEN`
 1. In the oAuth2 menu, select URL Generator; check `bot`, then in the second box, check "Manage messages", "Send Message", and "Read Messages"
 1. copy the link and paste it into your browser; from here you should be able to add the bot to your test server. (Save this link for later, you'll need it to add it to other places when required)
 
@@ -44,14 +44,18 @@ You'll need this setting toggled to true if you are just developing the bot. Twi
 
 Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with Twitch. Once that's finished, the bot should be up and running! If you set `T2D_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
 
+## Customization
+At this current point in time, by setting the `AUTH_PAGE_PATH` in `config.json`, or `T2D_AUTH_PAGE_PATH` in your enviorment variables, you are able to directly change the page which is shown once you authenticate. We currently have a default page which is used if you do not wish to pass one/create one.
+
 ## Launching with environment variables
 
 Environment variables will have the same syntax for the most part just like in the `config.json`. However, there are some main differences when applying the https env's - which are listed below:
 
-* `T2D_HTTPS_ENABLED` - turn https on; use this in production!
-* `T2D_HTTPS_KEYPATH` - where your .key is for the ssl certificate
-* `T2D_HTTPS_CERTPATH` - the path for the .crt
-* `T2D_HTTPS_PASSPHRASE` - the passphrase for the .crt
+* `T2D_HTTPS_ENABLED` - Turn https on; use this in production!
+* `T2D_HTTPS_KEYPATH` - Where your .key is for the ssl certificate
+* `T2D_HTTPS_CERTPATH` - The path for the .crt
+* `T2D_HTTPS_PASSPHRASE` - The passphrase for the .crt
+* `T2D_AUTH_PAGE_PATH` - The direct path to the page you would like to show once you have authed. Keep null/undefined for default page.
 
 # Credits
 

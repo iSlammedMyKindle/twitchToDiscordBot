@@ -1,20 +1,9 @@
+import { readFile, readFileSync } from 'fs';
+import http, { IncomingMessage, RequestListener, ServerResponse } from 'http';
+import { URL } from 'url';
+import { join } from 'path';
 import https from 'https';
 import open from 'open';
-import fs from 'fs';
-import http, { RequestListener } from 'http';
-import { URL } from 'url';
-
-interface request
-{
-    url: string;
-}
-
-interface response
-{
-    statusCode: number,
-    write: (message: string) => void,
-    end: () => void;
-}
 
 interface IParams
 {
@@ -31,6 +20,7 @@ interface IHttps
     key_path?: string,
     cert_path?: string,
     passphrase?: string,
+    auth_page_path?: string;
 }
 
 /**
@@ -71,9 +61,9 @@ function underscoreToCammel(str: string): string
     return res;
 }
 
-function objNamingConvert(obj: any): unknown
+function objNamingConvert(obj: Record<string, unknown>): Record<string, unknown>
 {
-    const res: any = {};
+    const res: Record<string, unknown> = {};
 
     for(const i in obj)
         res[underscoreToCammel(i)] = obj[i];
@@ -81,32 +71,36 @@ function objNamingConvert(obj: any): unknown
     return res;
 }
 
-const listenForTwitch = (url: string | undefined, httpsParams: IHttps | null) => new Promise((resolve, reject) =>
+function startWebServer(url: string | undefined, httpsParams: IHttps | null): Promise<URLSearchParams>
 {
-
-    // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
-    const serverFunc = (req: request, res: response) =>
+    return new Promise(async (resolve, reject) =>
     {
-        res.statusCode = 200;
-        res.write('<h1>Hi there, the app should be authenticated now!</h1>');
-        res.end();
-        tempServer.close();
-        resolve(new URL(req.url, url).searchParams);
-    };
+        const page = await fetchPage(httpsParams);
 
-    const tempServer = httpsParams?.use_https ? https.createServer({
-        key: fs.readFileSync(httpsParams?.key_path || ''),
-        cert: fs.readFileSync(httpsParams?.cert_path || ''),
-        passphrase: httpsParams?.passphrase ?? ''
-    }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
+        // Make a one-time server to catch the parameters twitch is wanting to send back. More specifically this it to obtain the token.
+        const serverFunc: RequestListener = (req: IncomingMessage, res: ServerResponse) =>
+        {
+            res.writeHead(200, { 'Content-Type': 'html' });
+            res.write(page);
+            res.end();
+            tempServer.close();
+            resolve(new URL(req.url!, url).searchParams);
+        };
 
-    tempServer.listen(3000);
-    tempServer.on('error', e => reject(e));
-});
+        const tempServer = httpsParams?.use_https ? https.createServer({
+            key: readFileSync(httpsParams?.key_path || ''),
+            cert: readFileSync(httpsParams?.cert_path || ''),
+            passphrase: httpsParams?.passphrase ?? ''
+        }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
+
+        tempServer.listen(3000);
+        tempServer.on('error', e => reject(e));
+    });
+}
 
 async function authenticateTwitch(params: IParams): Promise<AuthResponse>
 {
-    const targetUrl = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
+    const targetUrl: string = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +
         '&redirect_uri=' + params.redirect_uri);
 
@@ -120,24 +114,27 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
 
-    const oauthParams: any = await listenForTwitch(params.redirect_uri, params.https || null);
-    return new Promise((resolve, reject) =>
+    const oauthParams: URLSearchParams = await startWebServer(params.redirect_uri, params.https || null);
+    return new Promise<AuthResponse>((resolve, reject) =>
     {
         const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
             headers: { 'Content-Type': 'application/json' },
             method: 'POST',
-        }, res =>
+        }, (res: IncomingMessage) =>
         {
-            const resBuffer: any[] = [];
+            const resBuffer: Buffer[] = [];
 
-            res.on('data', chunk => resBuffer.push(chunk));
+            res.on('data', (chunk: Buffer) => resBuffer.push(chunk));
             res.on('end', () =>
             {
                 try
                 {
-                    resolve(objNamingConvert(JSON.parse(Buffer.concat(resBuffer).toString())) as AuthResponse);
+                    resolve(
+                        objNamingConvert(
+                            JSON.parse(Buffer.concat(resBuffer).toString())
+                        ) as unknown as AuthResponse);
                 }
-                catch(e)
+                catch(e: unknown)
                 {
                     // We can't log into twitch without a token...
                     reject('I couldn\'t parse the JSON! Stopping because we need a token, but don\'t have one.' + e);
@@ -157,11 +154,46 @@ async function authenticateTwitch(params: IParams): Promise<AuthResponse>
     });
 }
 
-export
+/**
+ * @description Fetch a page, from either a path VIA HTTPS parameters, or a default page VIA passing null.
+ * @param {IHTTPS | null} params The HTTPS parameters to check if there is an auth_page_path set. 
+ * @returns {Buffer | string} A buffer if a valid path is set, string for our default's backup.
+ */
+async function fetchPage(params: IHttps | null): Promise<Buffer | string>
 {
-    authenticateTwitch
-};
+    return new Promise<Buffer | string>((res) =>
+    {
+        if(params && params.auth_page_path)
+        {
+            readFile(params.auth_page_path, (err, data) =>
+            {
+                // If there is an error, run this function again but without any value, so we can
+                // scuffly get our default page (:
+                if(err)
+                    res(fetchPage(null));
 
+                res(data);
+            });
+        }
+
+        // if there isnt an auth_page_path;
+        const path: string = join(__dirname, '..', 'public', 'auth.html');
+
+        readFile(path, (err, data) =>
+        {
+            if(err)
+            {
+                console.log('Failed to get default page at path: ' + path + '. Using backup of our default!');
+                res('<h1>Successfully authed</h1>');
+            }
+
+            res(data);
+        });
+    });
+}
+
+export default authenticateTwitch;
+export { startWebServer };
 export type {
     AuthResponse, IParams, IHttps
 };
