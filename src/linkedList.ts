@@ -48,11 +48,11 @@ class linkedListNode<Type>
     }
 }
 
-class nodeInterface
+class nodeInterface<T>
 {
     // The node that was last made using `addNode`; should always be the last node in the list.
-    public lastCreatedNode: linkedListNode<any> | undefined;
-    public beginningNode: linkedListNode<any> | undefined;
+    public lastCreatedNode: linkedListNode<T> | undefined;
+    public beginningNode: linkedListNode<T> | undefined;
 
     constructor(data?: any)
     {

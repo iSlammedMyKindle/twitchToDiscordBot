@@ -98,7 +98,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
     // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-    const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
+    const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(m));
     bridge.discordTwitchCacheMap.set(m, listNode);
     bridge.discordTwitchCacheMap.set(m.id, listNode);
 
