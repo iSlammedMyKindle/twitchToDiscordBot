@@ -6,16 +6,17 @@
     "T2D_CHANNELS": [
         ""
     ],
-    "T2D_OBSCURE_TAG":true,
+    "T2D_OBSCURE_TAG": true,
     "T2D_SCOPE": "chat:read chat:edit channel:moderate",
     "T2D_REDIRECT_URI": "http://localhost:3000",
     "T2D_DISCORD_CHANNEL": "",
     "T2D_DISCORD_TOKEN": "",
     "T2D_DISCORD_CHAR_LIMIT": 4000,
     "T2D_HTTPS": {
-        "ENABLED":true,
+        "ENABLED": true,
         "KEYPATH": "./sslCertificate/twitchToDiscord.pass.key",
         "CERTPATH": "./sslCertificate/twitchToDiscord.crt",
-        "PASSPHRASE": "1234"
+        "PASSPHRASE": "1234",
+        "AUTH_PAGE_PATH": "./public/auth.html"
     }
 }

@@ -1,6 +1,6 @@
 import bridge, { genericPromiseError, configFile, manageMsgCache } from './bridge';
+import authenticateTwitch, { AuthResponse, IParams, IHttps } from '../oauth';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
-import { authenticateTwitch, AuthResponse, IParams, IHttps } from '../oauth';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
@@ -15,32 +15,34 @@ import { linkedListNode } from '../linkedList';
  * Login to twitch using the access token found in our oauth process
 */
 const configData: IParams =
-        // If we have environment variables - assume we're grabbing everything from there
-        process.env.T2D ? {
-            scope: process.env.T2D_SCOPE,
-            redirect_uri: process.env.T2D_REDIRECT_URI,
-            client_id: process.env.T2D_CLIENT_ID,
-            client_secret: process.env.T2D_SECRET,
+    // If we have environment variables - assume we're grabbing everything from there
+    process.env.T2D ? {
+        scope: process.env.T2D_SCOPE,
+        redirect_uri: process.env.T2D_REDIRECT_URI,
+        client_id: process.env.T2D_CLIENT_ID,
+        client_secret: process.env.T2D_SECRET,
+        https: {
+            use_https: process.env.T2D_HTTPS_ENABLED,
+            key_path: process.env.T2D_HTTPS_KEYPATH,
+            cert_path: process.env.T2D_HTTPS_CERTPATH,
+            passphrase: process.env.T2D_HTTPS_PASSPHRASE,
+            auth_page_path: process.env.T2D_HTTPS_AUTH_PAGE_PATH
+        } as IHttps
+    }
+        : // otherwise, just grab items from our json config
+        {
+            scope: configFile.T2D_SCOPE,
+            redirect_uri: configFile.T2D_REDIRECT_URI,
+            client_id: configFile.T2D_CLIENT_ID,
+            client_secret: configFile.T2D_SECRET,
             https: {
-                use_https: process.env.T2D_HTTPS_ENABLED,
-                key_path: process.env.T2D_HTTPS_KEYPATH,
-                cert_path: process.env.T2D_HTTPS_CERTPATH,
-                passphrase: process.env.T2D_HTTPS_PASSPHRASE
-            } as IHttps
-        }
-            : // otherwise, just grab items from our json config
-            {
-                scope: configFile.T2D_SCOPE,
-                redirect_uri: configFile.T2D_REDIRECT_URI,
-                client_id: configFile.T2D_CLIENT_ID,
-                client_secret: configFile.T2D_SECRET,
-                https: {
-                    use_https: configFile.T2D_HTTPS.ENABLED,
-                    key_path: configFile.T2D_HTTPS.KEYPATH,
-                    cert_path: configFile.T2D_HTTPS.CERTPATH,
-                    passphrase: configFile.T2D_HTTPS.PASSPHRASE
-                }
-            };
+                use_https: configFile.T2D_HTTPS.ENABLED,
+                key_path: configFile.T2D_HTTPS.KEYPATH,
+                cert_path: configFile.T2D_HTTPS.CERTPATH,
+                passphrase: configFile.T2D_HTTPS.PASSPHRASE,
+                auth_page_path: configFile.T2D_HTTPS.AUTH_PAGE_PATH
+            }
+        };
 
 /**
     * Login to twitch using the access token found in our oauth process
@@ -78,9 +80,9 @@ async function loginToTwitch(): Promise<void>
             'clientSecret': configFile.T2D_SECRET,
             onRefresh: async newTokenData => configFile.DEV_TWITCH_TOKEN ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null
         },
-            // tokenData is defined, ESLINT just sucks.
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            tokenData! as never || await authenticateTwitch(configData)
+        // tokenData is defined, ESLINT just sucks.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        tokenData! as never || await authenticateTwitch(configData)
     );
 
     // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
