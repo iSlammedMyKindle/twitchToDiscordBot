@@ -27,7 +27,7 @@ const Bridge = {
     targetDiscordChannel: undefined as TextChannel | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
     twitchMessageSearchCache: {} as { [key: string]: linkedListNode<conjoinedMsg>; },
-    messageLinkdListInterface: new nodeInterface() as nodeInterface,
+    messageLinkedListInterface: new nodeInterface() as nodeInterface<conjoinedMsg>,
 };
 
 function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | linkedListNode<conjoinedMsg>
@@ -40,18 +40,18 @@ function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | lin
 
     // Delete messages once we hit our cache limit, or if we defined a node to delete, destroy that instead
     if(!specificNode)
-        specificNode = Bridge.messageLinkdListInterface.beginningNode as linkedListNode<conjoinedMsg>; // Garbage collection takes care of this, so need to run delete
+        specificNode = Bridge.messageLinkedListInterface.beginningNode; // Garbage collection takes care of this, so need to run delete
 
-    Bridge.messageLinkdListInterface.rebindForDelete(specificNode);
+    Bridge.messageLinkedListInterface.rebindForDelete(specificNode);
 
-    if(specificNode.data?.twitchArray.length)
-        for(const item of specificNode.data.twitchArray)
+    if(specificNode!.data?.twitchArray.length)
+        for(const item of specificNode!.data.twitchArray)
             Bridge.discordTwitchCacheMap.delete(item);
 
-    if(specificNode.data?.message)
-        Bridge.discordTwitchCacheMap.delete(specificNode.data!.message);
+    if(specificNode!.data?.message)
+        Bridge.discordTwitchCacheMap.delete(specificNode!.data!.message);
 
-    return specificNode;
+    return specificNode!;
 }
 
 /**
