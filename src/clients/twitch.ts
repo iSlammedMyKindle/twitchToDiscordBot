@@ -148,7 +148,7 @@ async function loginToTwitch(): Promise<void>
                 // Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
                 // Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
                 const twitchMessage = new twitchMsg(message, false, userState, channel);
-                const listNode = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+                const listNode = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
 
                 bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
                 bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, listNode);

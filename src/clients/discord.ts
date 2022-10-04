@@ -7,21 +7,23 @@ import rng from 'random-seed';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
-function chunkMessage(message: string = '', contSymbol: string = '[...]')
+function chunkMessage(message: string = '', msgLimit: number = 490)
 {
     const res: string[] = [''];
     let resIndex: number = 0;
+    let progresStr: string = `[${1}/${Math.ceil(message.length / msgLimit)}]`;
 
     for(let i: number = 0; i < message.length; i++)
     {
-        if(res[resIndex].length === 490)
+        if(res[resIndex].length === msgLimit)
         {
             resIndex++;
             res[resIndex] = '';
+            progresStr = `[${resIndex+1}/${Math.ceil(message.length / msgLimit)}]`;
         }
 
         // If our current chunk comes after the first, and the current string is blank, add the continue symbol
-        if(resIndex && !res[resIndex]) res[resIndex] += contSymbol;
+        if(message.length > msgLimit && !res[resIndex]) res[resIndex] += progresStr;
 
         res[resIndex] += message[i];
     }
@@ -89,16 +91,16 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
 
     const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : configFile.T2D_DISCORD_CHAR_LIMIT) || 4000;
 
-    if(finalMessage.length > charLimit)
+    if(m.content.length > charLimit)
     {
-        m.reply('It looks liket this message went over the ' + charLimit + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
+        m.reply('It looks like this message went over the ' + charLimit + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
         finalMessage = finalMessage.substring(0, charLimit as number) + '[...]';
     }
 
     const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
     // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-    const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkdListInterface.addNode(new conjoinedMsg(m));
+    const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(m));
     bridge.discordTwitchCacheMap.set(m, listNode);
     bridge.discordTwitchCacheMap.set(m.id, listNode);
 
