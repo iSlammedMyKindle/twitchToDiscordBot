@@ -27,14 +27,10 @@ const Bridge = {
     targetDiscordChannel: undefined as TextChannel | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
     twitchMessageSearchCache: {} as { [key: string]: linkedListNode<conjoinedMsg>; },
-<<<<<<< HEAD
-    messageLinkdListInterface: new nodeInterface() as nodeInterface<conjoinedMsg>,
-=======
     messageLinkedListInterface: new nodeInterface() as nodeInterface<conjoinedMsg>,
->>>>>>> 0e7173766d6d6f3a96bee7e1970d8065fcbe475b
 };
 
-function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | linkedListNode<conjoinedMsg>
+function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg> | null): null | linkedListNode<conjoinedMsg>
 {
     if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE)
     {
@@ -46,7 +42,7 @@ function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | lin
     if(!specificNode)
         specificNode = Bridge.messageLinkedListInterface.beginningNode; // Garbage collection takes care of this, so need to run delete
 
-    Bridge.messageLinkedListInterface.rebindForDelete(specificNode);
+    Bridge.messageLinkedListInterface.rebindForDelete(specificNode!);
 
     if(specificNode!.data?.twitchArray.length)
         for(const item of specificNode!.data.twitchArray)
