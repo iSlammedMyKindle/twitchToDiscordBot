@@ -1,9 +1,11 @@
+declare function getItemAt<Type>(index: number, isForward: boolean): null | linkedListNode<Type> | typeof getItemAt;
+
 class linkedListNode<Type>
 {
 
     public data: Type | undefined;
-    public next: any = null;
-    public prev: any = null;
+    public next: linkedListNode<Type> | null | undefined = null;
+    public prev: linkedListNode<Type> | null | undefined = null;
 
     constructor(data?: Type)
     {
@@ -16,7 +18,7 @@ class linkedListNode<Type>
      * @param {number} index Grab items that are before this one, or after this one. A postive index takes you forward, and a negative index brings you back. it's possible for a undefined value to exist.
      * @param {boolean} isForward false traverses backwards, true goes forwards
      */
-    getItemAt(index: number = 0, isForward: boolean = true)
+    getItemAt(index: number = 0, isForward: boolean = true): typeof getItemAt<Type> | null | this
     {
 
         if(index === 0) return this;
@@ -25,36 +27,36 @@ class linkedListNode<Type>
 
         const key: string = isForward ? 'prev' : 'next';
 
-        if(this[key as keyof linkedListNode<any>] && index)
-            return this[key as keyof linkedListNode<any>].getItemAt(--index, isForward);
+        if(this[key as keyof linkedListNode<Type>] && index)
+            return (this[key as keyof linkedListNode<any>] as any)!.getItemAt(--index, isForward);
 
         return null;
     }
 
-    get beg(): any
+    get beg(): linkedListNode<Type>
     {
         if(this.prev !== null)
-            return this.prev.beg;
+            return this.prev!.beg;
 
         return this;
     }
 
-    get end(): any
+    get end(): linkedListNode<Type>
     {
         if(this.next !== null)
-            return this.next.end;
+            return this.next!.end;
 
         return this;
     }
 }
 
-class nodeInterface
+class nodeInterface<Type>
 {
     // The node that was last made using `addNode`; should always be the last node in the list.
-    public lastCreatedNode: linkedListNode<any> | undefined;
-    public beginningNode: linkedListNode<any> | undefined;
+    public lastCreatedNode: linkedListNode<Type> | undefined | null;
+    public beginningNode: linkedListNode<Type> | undefined | null;
 
-    constructor(data?: any)
+    constructor(data?: Type)
     {
         if(data)
             this.beginningNode =
@@ -66,9 +68,9 @@ class nodeInterface
      * @param {*} data - the data that will be inserted into the new linked list node.
      * @returns The new node that was created, it will also be placed inside `lastCreatedNode`
      */
-    addNode(data?: any)
+    addNode(data?: linkedListNode<Type>)
     {
-        const newNode = new linkedListNode(data);
+        const newNode = new linkedListNode<Type>(data as Type);
         newNode.prev = this.lastCreatedNode;
 
         if(this.lastCreatedNode)
@@ -86,7 +88,7 @@ class nodeInterface
     /**
     * Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
     */
-    rebindForDelete(targetNode: any)
+    rebindForDelete(targetNode: linkedListNode<Type>)
     {
         if(targetNode.next?.prev)
             targetNode.next.prev = targetNode.prev;

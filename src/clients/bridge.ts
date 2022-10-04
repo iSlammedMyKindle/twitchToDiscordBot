@@ -27,7 +27,7 @@ const Bridge = {
     targetDiscordChannel: undefined as TextChannel | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
     twitchMessageSearchCache: {} as { [key: string]: linkedListNode<conjoinedMsg>; },
-    messageLinkdListInterface: new nodeInterface() as nodeInterface,
+    messageLinkdListInterface: new nodeInterface() as nodeInterface<conjoinedMsg>,
 };
 
 function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | linkedListNode<conjoinedMsg>
