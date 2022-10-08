@@ -1,8 +1,11 @@
+// Function and type declarations so that we dont have
+// function thing(): (() => () => void) | linkedListNode<T>
+// every single time.
 declare function getItemAt(index: number, isForward: boolean): typeof getItemAt;
+type SameReturn<T> = (() => () => void) | T;
 
 class linkedListNode<T>
 {
-
     public data: T | undefined;
     public next: linkedListNode<T> | null = null;
     public prev: linkedListNode<T> | null = null;
@@ -36,7 +39,7 @@ class linkedListNode<T>
         return null;
     }
 
-    get beg(): (() => () => void) | linkedListNode<T>
+    get beg(): SameReturn<linkedListNode<T>>
     {
         if(this.prev !== null)
             return (this.prev as linkedListNode<T>).beg;
@@ -44,7 +47,7 @@ class linkedListNode<T>
         return this;
     }
 
-    get end(): (() => () => void) | linkedListNode<T>
+    get end(): SameReturn<linkedListNode<T>>
     {
         if(this.next !== null)
             return this.next.end;
