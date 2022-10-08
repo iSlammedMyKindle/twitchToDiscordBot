@@ -77,7 +77,7 @@ class nodeInterface<T>
      * @param {T} data - the data that will be inserted into the new linked list node.
      * @returns {void} The new node that was created, it will also be placed inside `lastCreatedNode`
      */
-    addNode(data?: T): linkedListNode<T>
+    addNode(data: T): linkedListNode<T>
     {
         const newNode = new linkedListNode(data);
         newNode.prev = this.lastCreatedNode;
