@@ -1,6 +1,6 @@
 import { PrivateMessage } from '@twurple/chat';
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
-import { linkedListNode } from '../linkedList';
+import { Node } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
 import bridge, { configFile, manageMsgCache, twitchDelete } from './bridge';
 import rng from 'random-seed';
@@ -11,7 +11,7 @@ function chunkMessage(message: string = '', msgLimit: number = 490)
 {
     const res: string[] = [''];
     let resIndex: number = 0;
-    let progresStr: string = `[${1}/${Math.ceil(message.length / msgLimit)}]`;
+    let progresStr: string = `[${ 1 }/${ Math.ceil(message.length / msgLimit) }]`;
 
     for(let i: number = 0; i < message.length; i++)
     {
@@ -19,7 +19,7 @@ function chunkMessage(message: string = '', msgLimit: number = 490)
         {
             resIndex++;
             res[resIndex] = '';
-            progresStr = `[${resIndex+1}/${Math.ceil(message.length / msgLimit)}]`;
+            progresStr = `[${ resIndex + 1 }/${ Math.ceil(message.length / msgLimit) }]`;
         }
 
         // If our current chunk comes after the first, and the current string is blank, add the continue symbol
@@ -66,7 +66,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
             if(obscureTag)
                 usrStr = targetUser.username + '~' + ((obscureString(m.author.discriminator) * 1000)).toFixed();
             else usrStr = targetUser.tag;
-            
+
             finalMessage = finalMessage.replaceAll(mention[0], '@[m]' + usrStr);
         }
     }
@@ -100,7 +100,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     const messageToSend: string = `${ discordHeader }${ finalMessage }`;
 
     // Create a key-value pair that will be logged as a partially complete fused object. When we find the other piece on the twitch side, it will also be mapped in our collection.
-    const listNode: linkedListNode<conjoinedMsg> = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(m));
+    const listNode: Node<conjoinedMsg> = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(m));
     bridge.discordTwitchCacheMap.set(m, listNode);
     bridge.discordTwitchCacheMap.set(m.id, listNode);
 
@@ -137,7 +137,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         /* The Twitch message of the Discord message we replied to.
         Going based off of IDs due to the fact that the Mesasge object will be different
         if it's a reply. */
-        const replyNode: linkedListNode<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
+        const replyNode: Node<conjoinedMsg> | undefined = bridge.discordTwitchCacheMap.get(fetchedMessageReply.id);
 
         /* We are only going to reply to the first Twitch message element, due to the fact it makes
         no difference to which we reply to.

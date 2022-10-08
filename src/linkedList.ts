@@ -4,11 +4,11 @@
 declare function getItemAt(index: number, isForward: boolean): typeof getItemAt;
 type SameReturn<T> = (() => () => void) | T;
 
-class linkedListNode<T>
+class Node<T>
 {
     public data: T | undefined;
-    public next: linkedListNode<T> | null = null;
-    public prev: linkedListNode<T> | null = null;
+    public next: Node<T> | null = null;
+    public prev: Node<T> | null = null;
 
     constructor(data?: T)
     {
@@ -20,13 +20,13 @@ class linkedListNode<T>
      * @description Grabs an item from the linked list based on this node's posistion, either backward or forwards
      * @param {number} index Grab items that are before this one, or after this one. A postive index takes you forward, and a negative index brings you back. it's possible for a undefined value to exist.
      * @param {boolean} isForward false traverses backwards, true goes forwards
-     * @returns {getItemAt | null | linkedListNode<T>} Refer to the index parameter's description, as it gives a good explanation of wahts happening.
+     * @returns {getItemAt | null | Node<T>} Refer to the index parameter's description, as it gives a good explanation of wahts happening.
      * @see linkedListNode
      */
     getItemAt(index: number = 0, isForward: boolean = true):
         typeof getItemAt
         | null
-        | linkedListNode<T>
+        | Node<T>
     {
 
         if(index === 0) return this;
@@ -35,21 +35,21 @@ class linkedListNode<T>
 
         const key: string = isForward ? 'prev' : 'next';
 
-        if(this[key as keyof linkedListNode<T>] && index)
-            return (this[key as keyof linkedListNode<T>] as linkedListNode<T>)!.getItemAt(--index, isForward);
+        if(this[key as keyof Node<T>] && index)
+            return (this[key as keyof Node<T>] as Node<T>)!.getItemAt(--index, isForward);
 
         return null;
     }
 
-    get beg(): SameReturn<linkedListNode<T>>
+    get beg(): SameReturn<Node<T>>
     {
         if(this.prev !== null)
-            return (this.prev as linkedListNode<T>).beg;
+            return (this.prev as Node<T>).beg;
 
         return this;
     }
 
-    get end(): SameReturn<linkedListNode<T>>
+    get end(): SameReturn<Node<T>>
     {
         if(this.next !== null)
             return this.next.end;
@@ -58,18 +58,18 @@ class linkedListNode<T>
     }
 }
 
-class nodeInterface<T>
+class LinkedList<T>
 {
     // The node that was last made using `addNode`; should always be the last node in the list.
-    public lastCreatedNode: linkedListNode<T> | null = null;
-    public beginningNode: linkedListNode<T> | null = null;
+    public lastCreatedNode: Node<T> | null = null;
+    public beginningNode: Node<T> | null = null;
 
     constructor(data?: T)
     {
         if(data)
             this.beginningNode =
                 this.lastCreatedNode =
-                new linkedListNode(data);
+                new Node(data);
     }
 
     /**
@@ -77,9 +77,9 @@ class nodeInterface<T>
      * @param {T} data - the data that will be inserted into the new linked list node.
      * @returns {void} The new node that was created, it will also be placed inside `lastCreatedNode`
      */
-    addNode(data: T): linkedListNode<T>
+    addNode(data: T): Node<T>
     {
-        const newNode = new linkedListNode(data);
+        const newNode = new Node(data);
         newNode.prev = this.lastCreatedNode;
 
         if(this.lastCreatedNode)
@@ -99,7 +99,7 @@ class nodeInterface<T>
      * @param {linkedListNode<T>} targetNode The node to stage for deletion.
      * @returns {void} Nothing 
      */
-    rebindForDelete(targetNode: linkedListNode<T>): void
+    rebindForDelete(targetNode: Node<T>): void
     {
         if(targetNode.next?.prev)
             targetNode.next.prev = targetNode.prev;
@@ -118,6 +118,6 @@ class nodeInterface<T>
 
 export
 {
-    linkedListNode,
-    nodeInterface
+    LinkedList,
+    Node
 };

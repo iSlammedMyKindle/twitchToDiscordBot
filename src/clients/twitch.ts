@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ClearMsg, PrivateMessage } from '@twurple/chat';
 import { ChatClient } from '@twurple/chat';
-import { linkedListNode } from '../linkedList';
+import { Node } from '../linkedList';
 
 // Twitch init
 // ///////////
@@ -125,7 +125,7 @@ async function loginToTwitch(): Promise<void>
             if(userState.tags.get('reply-parent-display-name'))
             {
                 // get the linked list node from the Twitch ID that was replied to
-                const fetchedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
+                const fetchedNode: Node<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
 
                 if(!fetchedNode)
                     return;
@@ -178,7 +178,7 @@ async function loginToTwitch(): Promise<void>
     // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
     bridge.twitch.anonChatClient?.onMessageRemove((_channel: string, id: string, _message: ClearMsg) =>
     {
-        const linkedNode: linkedListNode<conjoinedMsg> = bridge.discordTwitchCacheMap.get(id);
+        const linkedNode: Node<conjoinedMsg> = bridge.discordTwitchCacheMap.get(id);
 
         if(!linkedNode)
             return;
