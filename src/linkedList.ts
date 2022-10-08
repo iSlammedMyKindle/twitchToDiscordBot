@@ -59,7 +59,7 @@ class nodeInterface<T>
     public lastCreatedNode: linkedListNode<T> | null = null;
     public beginningNode: linkedListNode<T> | null = null;
 
-    constructor(data?: any)
+    constructor(data?: T)
     {
         if(data)
             this.beginningNode =
