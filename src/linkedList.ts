@@ -17,9 +17,11 @@ class linkedListNode<T>
     }
 
     /**
-     * Grabs an item from the linked list based on this node's posistion, either backward or forwards
+     * @description Grabs an item from the linked list based on this node's posistion, either backward or forwards
      * @param {number} index Grab items that are before this one, or after this one. A postive index takes you forward, and a negative index brings you back. it's possible for a undefined value to exist.
      * @param {boolean} isForward false traverses backwards, true goes forwards
+     * @returns {getItemAt | null | linkedListNode<T>} Refer to the index parameter's description, as it gives a good explanation of wahts happening.
+     * @see linkedListNode
      */
     getItemAt(index: number = 0, isForward: boolean = true):
         typeof getItemAt
@@ -71,8 +73,9 @@ class nodeInterface<T>
     }
 
     /**
-     * @param {*} data - the data that will be inserted into the new linked list node.
-     * @returns The new node that was created, it will also be placed inside `lastCreatedNode`
+     * @description Adds a node to the linkedList.
+     * @param {T} data - the data that will be inserted into the new linked list node.
+     * @returns {void} The new node that was created, it will also be placed inside `lastCreatedNode`
      */
     addNode(data?: T): linkedListNode<T>
     {
@@ -92,8 +95,10 @@ class nodeInterface<T>
     }
 
     /**
-    * Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
-    */
+     * @description Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
+     * @param {linkedListNode<T>} targetNode
+     * @returns {void} Nothing 
+     */
     rebindForDelete(targetNode: linkedListNode<T>): void
     {
         if(targetNode.next?.prev)
