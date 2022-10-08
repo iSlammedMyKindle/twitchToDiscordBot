@@ -96,7 +96,7 @@ class nodeInterface<T>
 
     /**
      * @description Basically prepare this node for deletion, once this is done, memory management from js will need to take care of this after a `delete` call
-     * @param {linkedListNode<T>} targetNode
+     * @param {linkedListNode<T>} targetNode The node to stage for deletion.
      * @returns {void} Nothing 
      */
     rebindForDelete(targetNode: linkedListNode<T>): void
