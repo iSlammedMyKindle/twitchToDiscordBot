@@ -58,7 +58,7 @@ class Node<T>
     }
 }
 
-class LinkedList<T>
+class linkedList<T>
 {
     // The node that was last made using `addNode`; should always be the last node in the list.
     public lastCreatedNode: Node<T> | null = null;
@@ -118,6 +118,6 @@ class LinkedList<T>
 
 export
 {
-    LinkedList,
+    linkedList,
     Node
 };
