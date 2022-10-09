@@ -1,5 +1,5 @@
 import { TextChannel } from 'discord.js';
-import { Node, LinkedList } from '../linkedList';
+import { Node, linkedList } from '../linkedList';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { ChatClient } from '@twurple/chat';
 import configFile from '../../config.json';
@@ -27,7 +27,7 @@ const Bridge = {
     targetDiscordChannel: undefined as TextChannel | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
     twitchMessageSearchCache: {} as { [key: string]: Node<conjoinedMsg>; },
-    messageLinkedListInterface: new LinkedList() as LinkedList<conjoinedMsg>,
+    messageLinkedListInterface: new linkedList() as linkedList<conjoinedMsg>,
 };
 
 function manageMsgCache(specificNode?: Node<conjoinedMsg> | null): null | Node<conjoinedMsg>
