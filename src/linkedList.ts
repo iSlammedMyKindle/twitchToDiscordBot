@@ -4,11 +4,11 @@
 declare function getItemAt(index: number, isForward: boolean): typeof getItemAt;
 type SameReturn<T> = (() => () => void) | T;
 
-class Node<T>
+class node<T>
 {
     public data: T | undefined;
-    public next: Node<T> | null = null;
-    public prev: Node<T> | null = null;
+    public next: node<T> | null = null;
+    public prev: node<T> | null = null;
 
     constructor(data?: T)
     {
@@ -26,7 +26,7 @@ class Node<T>
     getItemAt(index: number = 0, isForward: boolean = true):
         typeof getItemAt
         | null
-        | Node<T>
+        | node<T>
     {
 
         if(index === 0) return this;
@@ -35,21 +35,21 @@ class Node<T>
 
         const key: string = isForward ? 'prev' : 'next';
 
-        if(this[key as keyof Node<T>] && index)
-            return (this[key as keyof Node<T>] as Node<T>)!.getItemAt(--index, isForward);
+        if(this[key as keyof node<T>] && index)
+            return (this[key as keyof node<T>] as node<T>)!.getItemAt(--index, isForward);
 
         return null;
     }
 
-    get beg(): SameReturn<Node<T>>
+    get beg(): SameReturn<node<T>>
     {
         if(this.prev !== null)
-            return (this.prev as Node<T>).beg;
+            return (this.prev as node<T>).beg;
 
         return this;
     }
 
-    get end(): SameReturn<Node<T>>
+    get end(): SameReturn<node<T>>
     {
         if(this.next !== null)
             return this.next.end;
@@ -61,15 +61,15 @@ class Node<T>
 class linkedList<T>
 {
     // The node that was last made using `addNode`; should always be the last node in the list.
-    public lastCreatedNode: Node<T> | null = null;
-    public beginningNode: Node<T> | null = null;
+    public lastCreatedNode: node<T> | null = null;
+    public beginningNode: node<T> | null = null;
 
     constructor(data?: T)
     {
         if(data)
             this.beginningNode =
                 this.lastCreatedNode =
-                new Node(data);
+            new node(data);
     }
 
     /**
@@ -77,9 +77,9 @@ class linkedList<T>
      * @param {T} data - the data that will be inserted into the new linked list node.
      * @returns {void} The new node that was created, it will also be placed inside `lastCreatedNode`
      */
-    addNode(data: T): Node<T>
+    addNode(data: T): node<T>
     {
-        const newNode = new Node(data);
+        const newNode = new node(data);
         newNode.prev = this.lastCreatedNode;
 
         if(this.lastCreatedNode)
@@ -99,7 +99,7 @@ class linkedList<T>
      * @param {linkedListNode<T>} targetNode The node to stage for deletion.
      * @returns {void} Nothing 
      */
-    rebindForDelete(targetNode: Node<T>): void
+    rebindForDelete(targetNode: node<T>): void
     {
         if(targetNode.next?.prev)
             targetNode.next.prev = targetNode.prev;
@@ -119,5 +119,5 @@ class linkedList<T>
 export
 {
     linkedList,
-    Node
+    node
 };
