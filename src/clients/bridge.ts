@@ -1,5 +1,5 @@
 import { TextChannel } from 'discord.js';
-import { linkedListNode, nodeInterface } from '../linkedList';
+import { node, linkedList } from '../linkedList';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { ChatClient } from '@twurple/chat';
 import configFile from '../../config.json';
@@ -26,11 +26,11 @@ const Bridge = {
     currMsgCount: 0 as number,
     targetDiscordChannel: undefined as TextChannel | undefined,
     discordTwitchCacheMap: new Map() as Map<any, any>,
-    twitchMessageSearchCache: {} as { [key: string]: linkedListNode<conjoinedMsg>; },
-    messageLinkedListInterface: new nodeInterface() as nodeInterface<conjoinedMsg>,
+    twitchMessageSearchCache: {} as { [key: string]: node<conjoinedMsg>; },
+    messageLinkedListInterface: new linkedList() as linkedList<conjoinedMsg>,
 };
 
-function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | linkedListNode<conjoinedMsg>
+function manageMsgCache(specificNode?: node<conjoinedMsg> | null): null | node<conjoinedMsg>
 {
     if(!specificNode && Bridge.currMsgCount < Bridge.MAX_MSG_CACHE)
     {
@@ -42,7 +42,7 @@ function manageMsgCache(specificNode?: linkedListNode<conjoinedMsg>): null | lin
     if(!specificNode)
         specificNode = Bridge.messageLinkedListInterface.beginningNode; // Garbage collection takes care of this, so need to run delete
 
-    Bridge.messageLinkedListInterface.rebindForDelete(specificNode);
+    Bridge.messageLinkedListInterface.rebindForDelete(specificNode!);
 
     if(specificNode!.data?.twitchArray.length)
         for(const item of specificNode!.data.twitchArray)
