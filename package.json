@@ -5,8 +5,9 @@
     "start": "node ./dist/src/index.js"
   },
   "dependencies": {
-    "@twurple/auth": "^5.2.3",
-    "@twurple/chat": "^5.2.3",
+    "@twurple/api": "^6.1.1",
+    "@twurple/auth": "^6.1.1",
+    "@twurple/chat": "^6.1.1",
     "discord.js": "^13.8.1",
     "open": "^8.4.0",
     "random-seed": "^0.3.0",

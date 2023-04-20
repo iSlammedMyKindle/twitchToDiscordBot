@@ -3,6 +3,7 @@ import { node, linkedList } from '../linkedList';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { ChatClient } from '@twurple/chat';
 import configFile from '../../config.json';
+import { ApiClient } from '@twurple/api/lib';
 
 /**
  * If an error happens either on twitch or discord, print the thing
@@ -17,7 +18,11 @@ const Twitch = {
     that message w/ the onMessage(...) event.
     but our non-authed client will get the event */
     authChatClient: null as ChatClient | null,
-    anonChatClient: null as ChatClient | null
+    anonChatClient: null as ChatClient | null,
+
+    // Api client helps with the deletion of messages
+    apiChatClient: null as ApiClient | null,
+    botUserId: null as string | null,
 };
 
 const Bridge = {
@@ -60,7 +65,7 @@ function manageMsgCache(specificNode?: node<conjoinedMsg> | null): null | node<c
 */
 function twitchDelete(twitchObj: twitchMsg): void
 {
-    Bridge.twitch.authChatClient!.deleteMessage(twitchObj.channel, twitchObj.userState.id).then(undefined, genericPromiseError);
+    Bridge.twitch.apiChatClient?.moderation.deleteChatMessages(twitchObj.userState.channelId, Bridge.twitch.botUserId, twitchObj.userState.id).then(undefined, genericPromiseError);
 }
 
 export default Bridge;

@@ -98,7 +98,7 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
     });
 }
 
-async function authenticateTwitch(params: IParams): Promise<AuthResponse>
+async function authenticateTwitch(params: IParams | any): Promise<AuthResponse>
 {
     const targetUrl: string = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
         '&response_type=code&scope=' + params.scope +

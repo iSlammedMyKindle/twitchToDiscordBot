@@ -91,7 +91,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
 
     const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : configFile.T2D_DISCORD_CHAR_LIMIT) || 4000;
 
-    if(m.content.length > charLimit)
+    if(m.content.length > (charLimit as number))
     {
         m.reply('It looks like this message went over the ' + charLimit + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
         finalMessage = finalMessage.substring(0, charLimit as number) + '[...]';
