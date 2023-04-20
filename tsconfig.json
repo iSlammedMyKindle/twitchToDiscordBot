@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2021",
+    "target": "ESNext",
     "module": "commonjs",
     "lib": [
       "ES2021.String",
@@ -10,12 +10,9 @@
     ],
     "sourceMap": true,
     "outDir": "./dist",
-    "strict": false,
     "skipDefaultLibCheck": true,
     "moduleResolution": "node",
     "removeComments": true,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
@@ -37,6 +34,7 @@
   "include": [
     "./src/**/*.tsx",
     "./src/**/*.ts",
+    "./src/**/*.mjs",
   ],
   "ts-node": {
     "files": true
