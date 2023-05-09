@@ -90,7 +90,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     if(m.attachments?.size)
         finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
 
-    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : appConfig.discord.DISCORD_CHAR_LIMIT) || 4000;
+    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : appConfig.discord.discord_char_limit) || 4000;
 
     if(m.content.length > (charLimit as number))
     {
