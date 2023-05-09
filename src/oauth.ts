@@ -18,8 +18,8 @@ interface IHttps
 {
     use_https?: boolean,
     auth_page_path?: string;
-    cert_path?: string,
-    key_path?: string,
+    certpath?: string,
+    keypath?: string,
     passphrase?: string,
 }
 
@@ -88,8 +88,8 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
         };
 
         const tempServer = httpsParams?.use_https ? https.createServer({
-            key: readFileSync(httpsParams?.key_path || ''),
-            cert: readFileSync(httpsParams?.cert_path || ''),
+            key: readFileSync(httpsParams?.keypath || ''),
+            cert: readFileSync(httpsParams?.certpath || ''),
             passphrase: httpsParams?.passphrase ?? ''
         }, serverFunc as RequestListener) : http.createServer(serverFunc as RequestListener);
 
