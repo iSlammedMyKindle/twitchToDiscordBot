@@ -2,8 +2,9 @@ import { PrivateMessage } from '@twurple/chat';
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
 import { node } from '../linkedList';
 import { conjoinedMsg } from '../messageObjects';
-import bridge, { configFile, manageMsgCache, twitchDelete } from './bridge';
+import bridge, { manageMsgCache, twitchDelete } from './bridge';
 import rng from 'random-seed';
+import appConfig from '../appConfig.js';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 
@@ -32,10 +33,10 @@ function chunkMessage(message: string = '', msgLimit: number = 490)
 }
 
 /**
- * Uses `random-seed` to create a consistent hash. This cna be used for discord ids to obscure who's talking for privacy reasons.
+ * Uses `random-seed` to create a consistent hash. This can be used for discord ids to obscure who's talking for privacy reasons.
  * @param input Number that we're wanting to obscure
  */
-const obscureString = (input: string): number => rng.create(input + (process.env?.T2D_CLIENT_ID || configFile?.T2D_CLIENT_ID)).random();
+const obscureString = (input: string): number => rng.create(input + appConfig.twitch.client_id).random();
 
 discordClient.on('messageCreate', async (m: Message<boolean>) =>
 {
@@ -44,7 +45,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         m.channel.id !== bridge.targetDiscordChannel.id) return;
 
     // tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
-    const obscureTag = process.env?.T2D_OBSCURE_TAG || configFile?.T2D_OBSCURE_TAG;
+    const obscureTag = appConfig.appSettings.obscure_tag;
     const discordHeader: string = `[d][${ obscureTag ? m.author.username + '~' + ((obscureString(m.author.discriminator) * 1000)).toFixed() : m.author.tag }] `,
         foundIds: { [key: string]: boolean; } = {};
 
@@ -89,7 +90,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     if(m.attachments?.size)
         finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
 
-    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : configFile.T2D_DISCORD_CHAR_LIMIT) || 4000;
+    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : appConfig.discord.DISCORD_CHAR_LIMIT) || 4000;
 
     if(m.content.length > (charLimit as number))
     {
@@ -123,11 +124,11 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         if(currIndex < chunkedTwitchMessages.length)
             reply?.userState
                 ?
-                bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex], {
+                bridge.twitch.authChatClient?.say(appConfig.twitch.channels[0], chunkedTwitchMessages[currIndex], {
                     replyTo: reply.userState
                 }).then(incrementAndStuff)
                 :
-                bridge.twitch.authChatClient?.say(configFile.T2D_CHANNELS[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
+                bridge.twitch.authChatClient?.say(appConfig.twitch.channels[0], chunkedTwitchMessages[currIndex]).then(incrementAndStuff);
     }
 
 
@@ -183,14 +184,14 @@ discordClient.on('messageDeleteBulk', (messages: Collection<string, Message<bool
         discordOnMesgDel(mesgKeyValue[1]);
 });
 
-discordClient.login(configFile.T2D_DISCORD_TOKEN).then(
+discordClient.login(appConfig.discord.discord_token).then(
     async () =>
     {
         console.log('Discord bot is live!', discordClient.user!.tag);
 
-        const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(configFile.T2D_DISCORD_CHANNEL);
+        const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(appConfig.discord.discord_channel);
         if(!fetchChannel || !fetchChannel.isText())
-            throw new Error('Text channel fetched with ID (' + configFile.T2D_DISCORD_CHANNEL + ') is not a text channel.');
+            throw new Error('Text channel fetched with ID (' + appConfig.discord.discord_channel + ') is not a text channel.');
 
         /* Cast is there to convert it from any text channel into a TextChannel
         we already make sure that it is a text channel, and if it isn't we throw

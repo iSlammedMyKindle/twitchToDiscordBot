@@ -1,22 +1,28 @@
 {
-    "DEV_TWITCH_TOKEN": false,
-    "T2D_BOT_USERNAME": "",
-    "T2D_CLIENT_ID": "",
-    "T2D_SECRET": "",
-    "T2D_CHANNELS": [
-        ""
-    ],
-    "T2D_OBSCURE_TAG": true,
-    "T2D_SCOPE": "chat:read chat:edit channel:moderate moderator:manage:chat_messages",
-    "T2D_REDIRECT_URI": "http://localhost:3000",
-    "T2D_DISCORD_CHANNEL": "",
-    "T2D_DISCORD_TOKEN": "",
-    "T2D_DISCORD_CHAR_LIMIT": 4000,
-    "T2D_HTTPS": {
-        "ENABLED": true,
-        "KEYPATH": "./sslCertificate/twitchToDiscord.pass.key",
+    "appSettings":{
+        "OBSCURE_TAG": true,
+        "SAVE_TOKEN": false
+    },
+    "discord":{
+        "ACCOUNT_USERNAME": "",
+        "DISCORD_CHANNEL": "",
+        "DISCORD_TOKEN": "",
+        "DISCORD_CHAR_LIMIT": 4000
+    },
+    "twitch":{
+        "CHANNELS": [
+            ""
+        ],
+        "CLIENT_ID": "",
+        "CLIENT_SECRET": "",
+        "SCOPE": "chat:read chat:edit channel:moderate moderator:manage:chat_messages",
+        "REDIRECT_URI": "http://localhost:3000"
+    },
+    "webServer": {
+        "USE_HTTPS": true,
+        "AUTH_PAGE_PATH": "./public/auth.html",
         "CERTPATH": "./sslCertificate/twitchToDiscord.crt",
-        "PASSPHRASE": "1234",
-        "AUTH_PAGE_PATH": "./public/auth.html"
+        "KEYPATH": "./sslCertificate/twitchToDiscord.pass.key",
+        "PASSPHRASE": "1234"
     }
 }

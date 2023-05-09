@@ -66,7 +66,7 @@ let configJson;
 if(!useEnvironmentVariables) 
 {
     console.log('Could\'nt find the environment variable T2D, opening config.json instead...');
-    configJson = (await import('../config.json', {assert: { type:'json' }}))?.default;
+    configJson = require('../config.json');
 
     // Check if all categories are in the config. If not, throw an error
     const requiredCategories = [];
@@ -85,7 +85,7 @@ for(const envKey in configPrefixes)
         for(const variable in configPrefixes[envKey][category])
         {
             let varConfig = configPrefixes[envKey][category][variable];
-            let resultVal = useEnvironmentVariables ? process.env[envKey+variable] : configJson[category[variable]];
+            let resultVal = useEnvironmentVariables ? process.env[envKey+variable] : configJson[category][variable];
             
             if(typeof varConfig === 'object')
             {
@@ -99,7 +99,7 @@ for(const envKey in configPrefixes)
                 if(varConfig.getter) resultVal = varConfig.getter(resultVal);
             }
             else if(varConfig && 
-                (
+                !(
                     typeof resultVal === 'string' && resultVal.length || 
                     resultVal !== false || 
                     (resultVal ?? undefined)
@@ -112,11 +112,11 @@ for(const envKey in configPrefixes)
             }
 
             // If the value is valid (not undefined or null), we're fine to assign it
-            appConfig[category][variable] = resultVal;
+            appConfig[category][variable.toLowerCase()] = resultVal;
         }
     }
 }
 
 if(requiredVars.length) throw Error('COULD NOT LOAD THE APP! Please make sure the remaining varibles are filled in before running again: \n==\n'+requiredVars.join('\n') + '\n==');
 
-export default appConfig;
+module.exports = appConfig;

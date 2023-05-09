@@ -17,10 +17,10 @@ interface IParams
 interface IHttps
 {
     use_https?: boolean,
-    key_path?: string,
-    cert_path?: string,
-    passphrase?: string,
     auth_page_path?: string;
+    cert_path?: string,
+    key_path?: string,
+    passphrase?: string,
 }
 
 /**
@@ -98,11 +98,11 @@ function startWebServer(url: string | undefined, httpsParams: IHttps | null): Pr
     });
 }
 
-async function authenticateTwitch(params: IParams | any): Promise<AuthResponse>
+async function authenticateTwitch(twitch: IParams, configHttps: IHttps ): Promise<AuthResponse>
 {
-    const targetUrl: string = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + params.client_id +
-        '&response_type=code&scope=' + params.scope +
-        '&redirect_uri=' + params.redirect_uri);
+    const targetUrl: string = encodeURI('https://id.twitch.tv/oauth2/authorize?client_id=' + twitch.client_id +
+        '&response_type=code&scope=' + twitch.scope +
+        '&redirect_uri=' + twitch.redirect_uri);
 
     console.log('Trying to open this link in a browser ', targetUrl);
     try
@@ -114,7 +114,7 @@ async function authenticateTwitch(params: IParams | any): Promise<AuthResponse>
         console.error('It wasn\'t possible to automatically open the link. Try navigating to it by copying & pasting the link');
     }
 
-    const oauthParams: URLSearchParams = await startWebServer(params.redirect_uri, params.https || null);
+    const oauthParams: URLSearchParams = await startWebServer(twitch.redirect_uri, configHttps || null);
     return new Promise<AuthResponse>((resolve, reject) =>
     {
         const oauthReq = https.request('https://id.twitch.tv/oauth2/token', {
@@ -143,11 +143,11 @@ async function authenticateTwitch(params: IParams | any): Promise<AuthResponse>
         });
 
         oauthReq.write(JSON.stringify({
-            client_id: params.client_id,
-            client_secret: params.client_secret,
+            client_id: twitch.client_id,
+            client_secret: twitch.client_secret,
             code: oauthParams.get('code'),
             grant_type: 'authorization_code',
-            redirect_uri: params.redirect_uri
+            redirect_uri: twitch.redirect_uri
         }));
 
         oauthReq.end();

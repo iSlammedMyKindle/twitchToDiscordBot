@@ -1,4 +1,4 @@
-import bridge, { genericPromiseError, configFile, manageMsgCache } from './bridge';
+import bridge, { genericPromiseError, manageMsgCache } from './bridge';
 import authenticateTwitch, { AuthResponse } from '../oauth';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { Message } from 'discord.js';
@@ -7,53 +7,20 @@ import { RefreshingAuthProvider, getTokenInfo } from '@twurple/auth';
 import { ClearMsg, PrivateMessage, ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { node } from '../linkedList';
+import appConfig from '../appConfig.js';
 
 // Twitch init
 // ///////////
 
-/**
- * Login to twitch using the access token found in our oauth process
-*/
-const configData =
-    // If we have environment variables - assume we're grabbing everything from there
-    process.env.T2D ? {
-        scope: process.env.T2D_SCOPE,
-        redirect_uri: process.env.T2D_REDIRECT_URI,
-        client_id: process.env.T2D_CLIENT_ID,
-        client_secret: process.env.T2D_SECRET,
-        https: {
-            use_https: process.env.T2D_HTTPS_ENABLED,
-            key_path: process.env.T2D_HTTPS_KEYPATH,
-            cert_path: process.env.T2D_HTTPS_CERTPATH,
-            passphrase: process.env.T2D_HTTPS_PASSPHRASE,
-            auth_page_path: process.env.T2D_HTTPS_AUTH_PAGE_PATH
-        }
-    }
-        : // otherwise, just grab items from our json config
-        {
-            scope: configFile.T2D_SCOPE,
-            redirect_uri: configFile.T2D_REDIRECT_URI,
-            client_id: configFile.T2D_CLIENT_ID,
-            client_secret: configFile.T2D_SECRET,
-            https: {
-                use_https: configFile.T2D_HTTPS.ENABLED,
-                key_path: configFile.T2D_HTTPS.KEYPATH,
-                cert_path: configFile.T2D_HTTPS.CERTPATH,
-                passphrase: configFile.T2D_HTTPS.PASSPHRASE,
-                auth_page_path: configFile.T2D_HTTPS.AUTH_PAGE_PATH
-            }
-        };
 
-/**
-    * Login to twitch using the access token found in our oauth process
-    */
+// Login to twitch using the access token found in our oauth process
 async function loginToTwitch(): Promise<void> 
 {
     let tokenData: AuthResponse;
 
     try 
     {
-        if(configFile.DEV_TWITCH_TOKEN) 
+        if(appConfig.appSettings.save_token) 
         {
             tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
             console.log('Using saved token data found in ./tokens.json');
@@ -63,8 +30,8 @@ async function loginToTwitch(): Promise<void>
     {
         /* The only way for an error to be thrown here is if we try to read tokens.json and it 
         doesn't exist, which will only happen if we have
-        DEV_TWITCH_TOKEN enabled, so it's safe to just write to tokens.json */
-        const res: AuthResponse = await authenticateTwitch(configData);
+        save_token enabled, so it's safe to just write to tokens.json */
+        const res: AuthResponse = await authenticateTwitch(appConfig.twitch, appConfig.webServer);
 
         await fs.writeFile('./tokens.json', JSON.stringify(res));
         console.log('Saved token data.');
@@ -76,22 +43,23 @@ async function loginToTwitch(): Promise<void>
     // If bad data is given to our auth provider you'll get a log along the lines of "no valid token avaiable; trying to refresh.." etc.
     const authProvider: RefreshingAuthProvider = new RefreshingAuthProvider(
         {
-            'clientId': configFile.T2D_CLIENT_ID,
-            'clientSecret': configFile.T2D_SECRET,
-            onRefresh: async function(newTokenData) {
+            'clientId': appConfig.twitch.client_id,
+            'clientSecret': appConfig.twitch.client_secret,
+            onRefresh: async function(newTokenData) 
+            {
                 console.warn('yes', arguments);
-                return configFile.DEV_TWITCH_TOKEN ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null
+                return appConfig.appSettings.save_token ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null;
             }
         }
     );
 
-    bridge.twitch.botUserId = (await getTokenInfo(tokenData.accessToken, configData.client_id)).userId;
+    bridge.twitch.botUserId = (await getTokenInfo(tokenData.accessToken, appConfig.twitch.client_id)).userId;
 
-    authProvider.addUser(bridge.twitch.botUserId, tokenData! as never || await authenticateTwitch(configData), ['chat']);
+    authProvider.addUser(bridge.twitch.botUserId, tokenData! as never || await authenticateTwitch(appConfig.twitch, appConfig.webServer), ['chat']);
 
     // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-    bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [configFile.T2D_CHANNELS[0]] });
-    bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [configFile.T2D_CHANNELS[0]] });
+    bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [appConfig.twitch.channels[0]] });
+    bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [appConfig.twitch.channels[0]] });
     bridge.twitch.apiChatClient = new ApiClient({ authProvider });
 
     bridge.twitch.authChatClient.connect().then(() =>
@@ -112,7 +80,7 @@ async function loginToTwitch(): Promise<void>
 
         // If the person who sent the message's name isn't equal to the bot's name
         // then send the Discord message.
-        if(!(configFile.T2D_BOT_USERNAME.toLowerCase() === user.toLowerCase()))
+        if(!(appConfig.twitch.account_username === user.toLowerCase()))
         {
             /**
                 'reply-parent-display-name': 'testingaccount__',

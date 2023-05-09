@@ -2,7 +2,6 @@ import { TextChannel } from 'discord.js';
 import { node, linkedList } from '../linkedList';
 import { conjoinedMsg, twitchMsg } from '../messageObjects';
 import { ChatClient } from '@twurple/chat';
-import configFile from '../../config.json';
 import { ApiClient } from '@twurple/api/lib';
 
 /**
@@ -71,7 +70,6 @@ function twitchDelete(twitchObj: twitchMsg): void
 export default Bridge;
 export
 {
-    configFile,
     twitchDelete,
     manageMsgCache
 };
