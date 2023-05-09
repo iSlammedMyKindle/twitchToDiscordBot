@@ -4,12 +4,12 @@
         "SAVE_TOKEN": false
     },
     "discord":{
-        "ACCOUNT_USERNAME": "",
         "DISCORD_CHANNEL": "",
         "DISCORD_TOKEN": "",
         "DISCORD_CHAR_LIMIT": 4000
     },
     "twitch":{
+        "ACCOUNT_USERNAME": "",
         "CHANNELS": [
             ""
         ],
