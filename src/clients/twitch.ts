@@ -53,9 +53,13 @@ async function loginToTwitch(): Promise<void>
         }
     );
 
+    // This should only run if saving the token is turned off (appSettings.SAVE_TOKEN)
+    if(!tokenData)
+        tokenData = await authenticateTwitch(appConfig.twitch, appConfig.webServer);
+
     bridge.twitch.botUserId = (await getTokenInfo(tokenData.accessToken, appConfig.twitch.client_id)).userId;
 
-    authProvider.addUser(bridge.twitch.botUserId, tokenData! as never || await authenticateTwitch(appConfig.twitch, appConfig.webServer), ['chat']);
+    authProvider.addUser(bridge.twitch.botUserId, tokenData! as never, ['chat']);
 
     // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
     bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [appConfig.twitch.channels[0]] });
