@@ -90,12 +90,13 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     if(m.attachments?.size)
         finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
 
-    const charLimit = (process.env.T2D_DISCORD_CHAR_LIMIT ? process.env.T2D_DISCORD_CHAR_LIMIT : appConfig.discord.DISCORD_CHAR_LIMIT) || 4000;
+    const charLimit: number = appConfig.discord.discord_char_limit;
 
-    if(m.content.length > (charLimit as number))
+    if(m.content.length > charLimit)
     {
-        m.reply('It looks like this message went over the ' + charLimit + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
-        finalMessage = finalMessage.substring(0, charLimit as number) + '[...]';
+        //                                                                      👇 is a `number`
+        m.reply('It looks like this message went over the ' + charLimit.toLocaleString() + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
+        finalMessage = finalMessage.substring(0, charLimit) + '[...]';
     }
 
     const messageToSend: string = `${ discordHeader }${ finalMessage }`;
