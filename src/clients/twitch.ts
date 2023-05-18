@@ -1,13 +1,13 @@
-import bridge, { genericPromiseError, manageMsgCache } from './bridge';
-import authenticateTwitch, { AuthResponse } from '../oauth';
-import { conjoinedMsg, twitchMsg } from '../messageObjects';
+import bridge, { genericPromiseError, manageMsgCache } from './bridge.js';
+import { AuthResponse, authenticateTwitch } from 'kindle-twitch-oauth';
+import { conjoinedMsg, twitchMsg } from '../messageObjects.js';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider, getTokenInfo } from '@twurple/auth';
 import { ClearMsg, PrivateMessage, ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
-import { node } from '../linkedList';
-import appConfig from '../appConfig.js';
+import { node } from '../linkedList.js';
+import appConfig from '../appConfig.mjs';
 
 // Twitch init
 // ///////////
@@ -47,7 +47,7 @@ async function loginToTwitch(): Promise<void>
             'clientSecret': appConfig.twitch.client_secret,
             onRefresh: async function(newTokenData) 
             {
-                console.warn('yes', arguments);
+                // console.warn('yes', arguments);
                 return appConfig.appSettings.save_token ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null;
             }
         }

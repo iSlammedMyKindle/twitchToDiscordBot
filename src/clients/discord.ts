@@ -1,10 +1,10 @@
 import { PrivateMessage } from '@twurple/chat';
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
-import { node } from '../linkedList';
-import { conjoinedMsg } from '../messageObjects';
-import bridge, { manageMsgCache, twitchDelete } from './bridge';
+import { node } from '../linkedList.js';
+import { conjoinedMsg } from '../messageObjects.js';
+import bridge, { manageMsgCache, twitchDelete } from './bridge.js';
 import rng from 'random-seed';
-import appConfig from '../appConfig.js';
+import appConfig from '../appConfig.mjs';
 
 const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 

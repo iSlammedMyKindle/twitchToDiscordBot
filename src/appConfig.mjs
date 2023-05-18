@@ -66,7 +66,7 @@ let configJson;
 if(!useEnvironmentVariables) 
 {
     console.log('Could\'nt find the environment variable T2D, opening config.json instead...');
-    configJson = require('../config.json');
+    configJson = (await import('../config.json', { assert:{ type:'json' } })).default;
 
     // Check if all categories are in the config. If not, throw an error
     const requiredCategories = [];
@@ -119,4 +119,4 @@ for(const envKey in configPrefixes)
 
 if(requiredVars.length) throw Error('COULD NOT LOAD THE APP! Please make sure the remaining varibles are filled in before running again: \n==\n'+requiredVars.join('\n') + '\n==');
 
-module.exports = appConfig;
+export default appConfig;

@@ -1,8 +1,8 @@
 import { TextChannel } from 'discord.js';
-import { node, linkedList } from '../linkedList';
-import { conjoinedMsg, twitchMsg } from '../messageObjects';
+import { node, linkedList } from '../linkedList.js';
+import { conjoinedMsg, twitchMsg } from '../messageObjects.js';
 import { ChatClient } from '@twurple/chat';
-import { ApiClient } from '@twurple/api/lib';
+import { ApiClient } from '@twurple/api';
 
 /**
  * If an error happens either on twitch or discord, print the thing
