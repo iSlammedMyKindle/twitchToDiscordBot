@@ -4,7 +4,7 @@ import { conjoinedMsg, twitchMsg } from '../messageObjects.js';
 import { Message } from 'discord.js';
 import { promises as fs } from 'fs';
 import { RefreshingAuthProvider, getTokenInfo } from '@twurple/auth';
-import { ClearMsg, PrivateMessage, ChatClient } from '@twurple/chat';
+import { ClearMsg, ChatMessage, ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { node } from '../linkedList.js';
 import appConfig from '../appConfig.mjs';
@@ -45,13 +45,14 @@ async function loginToTwitch(): Promise<void>
         {
             'clientId': appConfig.twitch.client_id,
             'clientSecret': appConfig.twitch.client_secret,
-            onRefresh: async function(newTokenData) 
-            {
-                // console.warn('yes', arguments);
-                return appConfig.appSettings.save_token ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null;
-            }
         }
     );
+
+    authProvider.onRefresh(async function(_userId, newTokenData) 
+    {
+        // console.warn('yes', _userId, newTokenData);
+        return appConfig.appSettings.save_token ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null;
+    });
 
     // This should only run if saving the token is turned off (appSettings.SAVE_TOKEN)
     if(!tokenData)
@@ -66,16 +67,11 @@ async function loginToTwitch(): Promise<void>
     bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [appConfig.twitch.channels[0]] });
     bridge.twitch.apiChatClient = new ApiClient({ authProvider });
 
-    bridge.twitch.authChatClient.connect().then(() =>
-        console.log('Authenticated Twitch Client has connected')
-    );
-
-    bridge.twitch.anonChatClient.connect().then(() =>
-        console.log('Anon Twitch Client has connected')
-    );
+    bridge.twitch.authChatClient.connect();
+    bridge.twitch.anonChatClient.connect();
 
     // Using anonChatClient so that we recieve the messages we send, yknow.
-    bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: PrivateMessage) => 
+    bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: ChatMessage) => 
     {
         if(!bridge.targetDiscordChannel)
             throw new Error('Cannot find Discord channel.');

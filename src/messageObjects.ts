@@ -1,4 +1,4 @@
-import { PrivateMessage } from '@twurple/chat';
+import { ChatMessage } from '@twurple/chat';
 import { Message } from 'discord.js';
 
 /* Made by iSlammedMyKindle in 2022!
@@ -20,10 +20,10 @@ class twitchMsg
 {
     public msg: string = '';
     public self: boolean;
-    public userState: PrivateMessage;
+    public userState: ChatMessage;
     public channel: string;
 
-    constructor(msg: string = '', self: boolean, userState: PrivateMessage, channel: string)
+    constructor(msg: string = '', self: boolean, userState: ChatMessage, channel: string)
     {
         this.msg = msg;
         this.self = self;

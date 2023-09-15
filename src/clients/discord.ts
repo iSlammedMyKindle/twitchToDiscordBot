@@ -1,4 +1,4 @@
-import { PrivateMessage } from '@twurple/chat';
+import { ChatMessage } from '@twurple/chat';
 import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
 import { node } from '../linkedList.js';
 import { conjoinedMsg } from '../messageObjects.js';
@@ -113,7 +113,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         bridge.twitchMessageSearchCache[msg] = listNode;
 
     let currIndex: number = 0;
-    function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: PrivateMessage; }): void
+    function recursiveSend(chunkedTwitchMessages: string[], reply?: { userState: ChatMessage; }): void
     {
         // I don't know what to name this.
         function incrementAndStuff(): void
@@ -146,7 +146,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
         Cause it will always respond to the "starting" reply message one. */
 
         recursiveSend(chunkedTwitchMessages, {
-            userState: replyNode?.data!.twitchArray[0]?.userState as PrivateMessage || null
+            userState: replyNode?.data!.twitchArray[0]?.userState as ChatMessage || null
         });
 
         manageMsgCache();

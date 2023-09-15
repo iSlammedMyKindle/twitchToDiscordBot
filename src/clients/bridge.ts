@@ -64,7 +64,13 @@ function manageMsgCache(specificNode?: node<conjoinedMsg> | null): null | node<c
 */
 function twitchDelete(twitchObj: twitchMsg): void
 {
-    Bridge.twitch.apiChatClient?.moderation.deleteChatMessages(twitchObj.userState.channelId, Bridge.twitch.botUserId, twitchObj.userState.id).then(undefined, genericPromiseError);
+    /* This was honestly really weird; the moderation stuff was trying to use the broadcaster ID to delete stuff
+    The goal though is to have a separate bot be able to do this stuff, so the main user doesn't need to. I'm going to leave this here in case I hit it again:
+    https://github.com/twurple/twurple/blob/main/docs/auth/concepts/context-switching.md */
+    Bridge.twitch.apiChatClient?.asUser(Twitch.botUserId, async ctx=>
+    {
+        ctx.moderation.deleteChatMessages(twitchObj.userState.channelId, twitchObj.userState.id).then(undefined, genericPromiseError);
+    });
 }
 
 export default Bridge;
