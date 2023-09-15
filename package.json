@@ -8,18 +8,18 @@
     "@twurple/api": "^7.0.0",
     "@twurple/auth": "^7.0.0",
     "@twurple/chat": "^7.0.0",
-    "discord.js": "^13.8.1",
+    "discord.js": "^14.13.0",
     "kindle-twitch-oauth": "1.1.0",
     "open": "^8.4.0",
     "random-seed": "^0.3.0",
-    "typescript": "^4.8.2"
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/node": "^18.7.13",
+    "@types/node": "^20.6.0",
     "@types/random-seed": "^0.3.3",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
-    "eslint": "^8.23.0",
+    "eslint": "^8.49.0",
     "ts-node": "^10.9.1"
   },
   "type":"module"

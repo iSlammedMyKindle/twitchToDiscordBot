@@ -50,10 +50,17 @@ function manageMsgCache(specificNode?: node<conjoinedMsg> | null): null | node<c
 
     if(specificNode!.data?.twitchArray.length)
         for(const item of specificNode!.data.twitchArray)
+        {
             Bridge.discordTwitchCacheMap.delete(item);
+            Bridge.discordTwitchCacheMap.delete(item.userState.id);
+        }
 
     if(specificNode!.data?.message)
-        Bridge.discordTwitchCacheMap.delete(specificNode!.data!.message);
+    {
+        const msg = specificNode!.data!.message;
+        Bridge.discordTwitchCacheMap.delete(msg);
+        Bridge.discordTwitchCacheMap.delete(msg.id);
+    }
 
     return specificNode!;
 }

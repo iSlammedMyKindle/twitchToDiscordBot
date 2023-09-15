@@ -1,12 +1,12 @@
 import { ChatMessage } from '@twurple/chat';
-import { AnyChannel, Client, Collection, Message, PartialMessage, TextChannel } from 'discord.js';
+import { Channel, Client, Collection, Message, PartialMessage, TextChannel, MessageType } from 'discord.js';
 import { node } from '../linkedList.js';
 import { conjoinedMsg } from '../messageObjects.js';
 import bridge, { manageMsgCache, twitchDelete } from './bridge.js';
 import rng from 'random-seed';
 import appConfig from '../appConfig.mjs';
 
-const discordClient = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
+const discordClient = new Client({ intents: ['Guilds', 'GuildMessages'] });
 
 function chunkMessage(message: string = '', msgLimit: number = 490)
 {
@@ -49,10 +49,15 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     const discordHeader: string = `[d][${ obscureTag ? m.author.username + '~' + ((obscureString(m.author.discriminator) * 1000)).toFixed() : m.author.tag }] `,
         foundIds: { [key: string]: boolean; } = {};
 
-    let finalMessage: string = m.content;
+    // Assign m to a new message with the content so that the bot doesn't crash when searching for messages to delete
+    const content: string = m.content || (m = await m.fetch()).content;
+
+    if(!content.length) console.warn('Somehow there\'s an empty message from '+m.author.username+', this is probably a bug -_-');
+
+    let finalMessage: string = content;
 
     // Grab the contents of the message, convert discord mentions into usernames for twitch to see
-    for(const mention of m.content.matchAll(/<@[0-9]{1,}>/g))
+    for(const mention of finalMessage.matchAll(/<@[0-9]{1,}>/g))
     {
         if(mention === null)
             continue;
@@ -73,7 +78,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     }
 
     // Also need to filter out custom emoji from discord; would be better to display the custom emoji name
-    for(const customEmoji of m.content.matchAll(/<:[A-Za-z]{1,}:[0-9]{1,}>/g))
+    for(const customEmoji of content.matchAll(/<:[A-Za-z]{1,}:[0-9]{1,}>/g))
     {
         const emojiNameAndId: string[] = /[A-Za-z]{1,}:[0-9]{1,}/.exec(customEmoji[0])![0].split(':');
 
@@ -92,7 +97,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
 
     const charLimit: number = appConfig.discord.discord_char_limit;
 
-    if(m.content.length > charLimit)
+    if(finalMessage.length > charLimit)
     {
         //                                                                      👇 is a `number`
         m.reply('It looks like this message went over the ' + charLimit.toLocaleString() + ' character limit. Because of that I\'ll need to shorten the message down with "[...]", sorry about that :/');
@@ -133,7 +138,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     }
 
 
-    if(m.type === 'REPLY')
+    if(m.type === MessageType.Reply)
     {
         const fetchedMessageReply: Message<boolean> = await m.fetchReference();
         /* The Twitch message of the Discord message we replied to.
@@ -190,8 +195,8 @@ discordClient.login(appConfig.discord.discord_token).then(
     {
         console.log('Discord bot is live!', discordClient.user!.tag);
 
-        const fetchChannel: AnyChannel | null = await discordClient.channels.fetch(appConfig.discord.discord_channel);
-        if(!fetchChannel || !fetchChannel.isText())
+        const fetchChannel: Channel | null = await discordClient.channels.fetch(appConfig.discord.discord_channel);
+        if(!fetchChannel || !fetchChannel.isTextBased())
             throw new Error('Text channel fetched with ID (' + appConfig.discord.discord_channel + ') is not a text channel.');
 
         /* Cast is there to convert it from any text channel into a TextChannel
