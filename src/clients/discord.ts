@@ -46,7 +46,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
 
     // tmi.js automatically splits up these messages down if they are over 500 characters, so there's no need to worry if discord's message is too big.
     const obscureTag = appConfig.appSettings.obscure_tag;
-    const discordHeader: string = `[d][${ obscureTag ? m.author.username + '~' + ((obscureString(m.author.discriminator) * 1000)).toFixed() : m.author.tag }] `,
+    const discordHeader: string = `[d][${ obscureTag ? m.author.displayName + '~' + ((obscureString(m.author.username) * 1000)).toFixed() : m.author.tag }] `,
         foundIds: { [key: string]: boolean; } = {};
 
     // Assign m to a new message with the content so that the bot doesn't crash when searching for messages to delete
