@@ -35,6 +35,10 @@ const configPrefixes = {
             'CLIENT_SECRET': true,
             'REDIRECT_URI': true,
             'SCOPE': true,
+        },
+        listenerCore:{
+            'LC_URL': false,
+            'LC_SCOPE':{required: false, getter: val=>Array.isArray(val) ? val : JSON.parse(val)}
         }
     },
     'T2D_HTTPS_':{
@@ -52,7 +56,8 @@ let appConfig = {
     appSettings: {},
     discord: {},
     twitch: {},
-    webServer: {}
+    webServer: {},
+    listenerCore: {}
 };
 
 // Run through the config depending on where we get it. If something is required and doesn't exist, throw an error to prevent further execution

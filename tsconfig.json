@@ -34,7 +34,8 @@
   "include": [
     "./src/**/*.tsx",
     "./src/**/*.ts",
-    "./src/**/*.js", "src/appConfig.mjs",
+    "./src/**/*.js",
+    "./src/**/*.mjs",
   ],
   "ts-node": {
     "files": true
