@@ -44,8 +44,20 @@ You'll need this setting toggled to true if you are just developing the bot. Twi
 
 Run the build script with `npm run build`, then run `npm run start` and a link should show up in the terminal (if you're on localhost/desktop, a browser window should pop up); it will make you authenticate with Twitch. Once that's finished, the bot should be up and running! If you set `T2D_DEV_SAVE_TOKEN` to true, the token that was just created will be saved to a file for when you need to relaunch the bot. If this token expires, you'll need to delete the file to start over. (for now)
 
-## Customization
+## Authorization page customization
+
 At this current point in time, by setting the `AUTH_PAGE_PATH` in `config.json`, or `T2D_AUTH_PAGE_PATH` in your enviorment variables, you are able to directly change the page which is shown once you authenticate. We currently have a default page which is used if you do not wish to pass one/create one.
+
+## Subs, follows, bits, and channel points
+
+twitchToDiscord was designed to be run by a separate user other than the broadcaster. However, the four above events can only be subscribed to by the broadcaster user. To get around this, the project makes use of [twitchListenerCore](https://github.com/iSlammedMyKindle/twitchListenerCore), a separate application.
+
+This will send these events directly to discord without creating another bot that uses both twitch and discord apis together.
+
+The following flags are accepted for the config or environment variables:
+
+* `T2D_LC_URL` - the address listenerCore is listening to.
+* `T2D_LC_SCOPE` - (array) the events to start listening to. Event types: `["redeem", "cheer", "follow", "sub"]`
 
 ## Launching with environment variables
 
