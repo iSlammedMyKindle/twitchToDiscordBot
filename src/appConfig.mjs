@@ -38,7 +38,7 @@ const configPrefixes = {
         },
         listenerCore:{
             'LC_URL': false,
-            'LC_SCOPE':{required: false, getter: val=>Array.isArray(val) ? val : JSON.parse(val)}
+            'LC_SCOPE':{required: false, getter: val=>(Array.isArray(val) ? val : JSON.parse(val || null))}
         }
     },
     'T2D_HTTPS_':{
