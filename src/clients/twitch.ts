@@ -87,6 +87,9 @@ bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: 
             is a reply.
         */
 
+        // Get the (twitch) emoji strings from the config and display emoji in the message if both properties are set
+        const emojiString = appConfig.discord.emoji_name && appConfig.discord.emoji_id ? `<:${appConfig.discord.emoji_name}:${appConfig.discord.emoji_id}>` : '';
+
         // if there is a reply parent display name
         // we know it's a reply.
         if(userState.tags.get('reply-parent-display-name'))
@@ -99,7 +102,7 @@ bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: 
 
             try
             {
-                fetchedNode.data?.message?.reply(`[t][${ user }] ${ newMessage }`);
+                fetchedNode.data?.message?.reply(`${emojiString} **${ user }**: ${ newMessage }`);
                 return;
             }
             catch(err: unknown)
@@ -110,7 +113,7 @@ bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: 
 
         // We should (hopefully) not get stuck in a loop here due to our
         // checks in discord.ts
-        bridge.targetDiscordChannel.send(`[t][${ user }] ${ message }`).then((discordMessage: Message<boolean>) =>
+        bridge.targetDiscordChannel.send(`${emojiString} **${ user }**: ${ message }`).then((discordMessage: Message<boolean>) =>
         {
             // Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
             // Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
