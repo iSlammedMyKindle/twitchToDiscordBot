@@ -7,7 +7,7 @@
         "DISCORD_CHANNEL": "",
         "DISCORD_TOKEN": "",
         "DISCORD_CHAR_LIMIT": 4000,
-        "EMOJI_NAME": "twitch",
+        "EMOJI_NAME": "",
         "EMOJI_ID": ""
     },
     "twitch":{
