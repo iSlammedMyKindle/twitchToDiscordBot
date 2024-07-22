@@ -27,6 +27,8 @@ const configPrefixes = {
             'DISCORD_CHANNEL': true,
             'DISCORD_CHAR_LIMIT': { required: false, getter:val=>val*1 }, // Must always be a number
             'DISCORD_TOKEN': true,
+            'EMOJI_NAME': false,
+            'EMOJI_ID': false,
         },
         twitch:{
             'ACCOUNT_USERNAME': true,
