@@ -6,7 +6,9 @@
     "discord":{
         "DISCORD_CHANNEL": "",
         "DISCORD_TOKEN": "",
-        "DISCORD_CHAR_LIMIT": 4000
+        "DISCORD_CHAR_LIMIT": 4000,
+        "EMOJI_NAME": "twitch",
+        "EMOJI_ID": ""
     },
     "twitch":{
         "ACCOUNT_USERNAME": "",
