@@ -1,5 +1,6 @@
 // twitchToDiscord doesn't need to always use a config.json in order to work. It can also use environment variables so you don't need to save it on a deployed instance
 // EDIT: this is becoming overengineered but awesome nonetheless
+import { readFile } from 'fs/promises';
 
 // If HTTPS is enabled, all HTTPS related values are required.
 const httpsConditional = {
@@ -72,8 +73,8 @@ let configJson;
 
 if(!useEnvironmentVariables) 
 {
-    console.log('Could\'nt find the environment variable T2D, opening config.json instead...');
-    configJson = (await import('../config.json', { assert:{ type:'json' } })).default;
+    console.log('Couldn\'t find the environment variable T2D, opening config.json instead...');
+    configJson = (JSON.parse(await readFile('config.json')));
 
     // Check if all categories are in the config. If not, throw an error
     const requiredCategories = [];

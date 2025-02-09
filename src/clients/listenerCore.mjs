@@ -14,6 +14,13 @@ import WebSocket from 'ws';
 import appConfig from '../appConfig.mjs';
 import bridge from '../clients/bridge.js';
 
+// Mock
+// const bridge = {
+//     targetDiscordChannel:{
+//         send:msg=>console.log(msg)
+//     }
+// };
+
 const listeners = {
     'redeem':({ userDisplayName, rewardCost, rewardTitle })=> bridge.targetDiscordChannel.send('## *__' + userDisplayName + '__ redeemed: __' + rewardTitle + '__ for __' + rewardCost + ' points!__* 🎉'),
     'cheer':({userDisplayName, bits, message})=> bridge.targetDiscordChannel.send('## *__' + userDisplayName + '__ just sent __' + bits + ' bits!__* 💎' + ( message ? '\n> ' + message : '')),
@@ -30,7 +37,7 @@ const listeners = {
 // Only start a connection if we have the url in the config
 if(appConfig.listenerCore.lc_url)
 {
-    const ws = new WebSocket('ws://' + appConfig.listenerCore.lc_url + ':9001');
+    const ws = new WebSocket('wss://' + appConfig.listenerCore.lc_url + ':9001');
     ws.on('open', ()=>
     {
         console.log('Connected to listenerCore!');
