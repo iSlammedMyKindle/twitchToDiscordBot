@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npx tsc && cp ./public/ ./dist/ -r",
+    "build": "npx tsc && cp -r ./public/ ./dist/",
     "watch": "npx nodemon ./src/twitchToDiscord.ts",
     "start": "node ./dist/index.js"
   },
