@@ -1,5 +1,5 @@
 import { ChatMessage } from '@twurple/chat';
-import { Channel, Client, Collection, Message, PartialMessage, TextChannel, MessageType } from 'discord.js';
+import { Channel, Client, Message, PartialMessage, TextChannel, MessageType, GuildTextBasedChannel } from 'discord.js';
 import { node } from '../linkedList.js';
 import { conjoinedMsg } from '../messageObjects.js';
 import bridge, { manageMsgCache, twitchDelete } from './bridge.js';
@@ -184,10 +184,13 @@ const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
 
 discordClient.on('messageDelete', discordOnMesgDel);
 
-discordClient.on('messageDeleteBulk', (messages: Collection<string, Message<boolean> | PartialMessage>) =>
+discordClient.on('messageDeleteBulk', (messages, channel: GuildTextBasedChannel) =>
 {
-    for(const mesgKeyValue of messages)
-        discordOnMesgDel(mesgKeyValue[1]);
+    if (channel.id !== bridge.targetDiscordChannel?.id) return;
+    for (const [, message] of messages)
+    {
+        discordOnMesgDel(message);
+    }
 });
 
 discordClient.login(appConfig.discord.discord_token).then(
