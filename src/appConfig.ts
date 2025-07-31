@@ -6,7 +6,7 @@ import { readFile } from 'fs/promises';
 const httpsConditional = {
     get required()
     {
-        return appConfig.webServer.USE_HTTPS;
+        return appConfig.webServer.use_https;
     }
 };
 
@@ -55,7 +55,21 @@ const configPrefixes = {
     }
 };
 
-let appConfig = {
+type AppConfig = {
+    appSettings: Record<string, boolean | number | string>;
+    discord: Record<string, boolean | number | string>;
+    twitch: Record<string, boolean | number | string>;
+    webServer: {
+        use_https?: boolean;
+        auth_page_path?: string;
+        certpath?: string;
+        keypath?: string;
+        passphrase?: string;
+    };
+    listenerCore: Record<string, boolean | number | string>;
+};
+
+const appConfig: AppConfig = {
     appSettings: {},
     discord: {},
     twitch: {},
@@ -74,7 +88,7 @@ let configJson;
 if(!useEnvironmentVariables) 
 {
     console.log('Couldn\'t find the environment variable T2D, opening config.json instead...');
-    configJson = (JSON.parse(await readFile('config.json')));
+    configJson = (JSON.parse(await readFile('config.json', 'utf8')));
 
     // Check if all categories are in the config. If not, throw an error
     const requiredCategories = [];
@@ -92,7 +106,7 @@ for(const envKey in configPrefixes)
     {
         for(const variable in configPrefixes[envKey][category])
         {
-            let varConfig = configPrefixes[envKey][category][variable];
+            const varConfig = configPrefixes[envKey][category][variable];
             let resultVal = useEnvironmentVariables ? process.env[envKey+variable] : configJson[category][variable];
             
             if(typeof varConfig === 'object')
