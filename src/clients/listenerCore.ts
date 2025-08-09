@@ -11,8 +11,8 @@ If the config in T2D doesn't have a url, we won't try to connect.
 This will take in a variety of information, such as redeems, bits, follows and subs*/
 
 import WebSocket from 'ws';
-import appConfig from '../appConfig.mjs';
-import bridge from '../clients/bridge.js';
+import appConfig from '../appConfig.js';
+import bridge from './bridge.js';
 
 // Mock
 // const bridge = {

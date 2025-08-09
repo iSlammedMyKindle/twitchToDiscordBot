@@ -1,10 +1,10 @@
 import { ChatMessage } from '@twurple/chat';
-import { Channel, Client, Collection, Message, PartialMessage, TextChannel, MessageType } from 'discord.js';
+import { Channel, Client, Message, PartialMessage, TextChannel, MessageType, GuildTextBasedChannel } from 'discord.js';
 import { node } from '../linkedList.js';
 import { conjoinedMsg } from '../messageObjects.js';
 import bridge, { manageMsgCache, twitchDelete } from './bridge.js';
 import rng from 'random-seed';
-import appConfig from '../appConfig.mjs';
+import appConfig from '../appConfig.js';
 
 const discordClient = new Client({ intents: ['Guilds', 'GuildMessages'] });
 
@@ -95,7 +95,7 @@ discordClient.on('messageCreate', async (m: Message<boolean>) =>
     if(m.attachments?.size)
         finalMessage += ' ' + [...m.attachments].map(e => e[1].url).join(' ');
 
-    const charLimit: number = appConfig.discord.discord_char_limit;
+    const charLimit: number = appConfig.discord.discord_char_limit as number;
 
     if(finalMessage.length > charLimit)
     {
@@ -184,18 +184,21 @@ const discordOnMesgDel = (m: Message<boolean> | PartialMessage): void =>
 
 discordClient.on('messageDelete', discordOnMesgDel);
 
-discordClient.on('messageDeleteBulk', (messages: Collection<string, Message<boolean> | PartialMessage>) =>
+discordClient.on('messageDeleteBulk', (messages, channel: GuildTextBasedChannel) =>
 {
-    for(const mesgKeyValue of messages)
-        discordOnMesgDel(mesgKeyValue[1]);
+    if (channel.id !== bridge.targetDiscordChannel?.id) return;
+    for (const [, message] of messages)
+    {
+        discordOnMesgDel(message);
+    }
 });
 
-discordClient.login(appConfig.discord.discord_token).then(
+discordClient.login(appConfig.discord.discord_token as string).then(
     async () =>
     {
         console.log('Discord bot is live!', discordClient.user!.tag);
 
-        const fetchChannel: Channel | null = await discordClient.channels.fetch(appConfig.discord.discord_channel);
+        const fetchChannel: Channel | null = await discordClient.channels.fetch(appConfig.discord.discord_channel as string);
         if(!fetchChannel || !fetchChannel.isTextBased())
             throw new Error('Text channel fetched with ID (' + appConfig.discord.discord_channel + ') is not a text channel.');
 

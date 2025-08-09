@@ -7,7 +7,7 @@ import { RefreshingAuthProvider, getTokenInfo } from '@twurple/auth';
 import { ClearMsg, ChatMessage, ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { node } from '../linkedList.js';
-import appConfig from '../appConfig.mjs';
+import appConfig from '../appConfig.js';
 
 // Twitch init
 // ///////////
@@ -29,7 +29,13 @@ catch(error: unknown)
     /* The only way for an error to be thrown here is if we try to read tokens.json and it 
     doesn't exist, which will only happen if we have
     save_token enabled, so it's safe to just write to tokens.json */
-    const res: AuthResponse = await authenticateTwitch(appConfig.twitch, appConfig.webServer);
+    const res: AuthResponse = await authenticateTwitch(appConfig.twitch, {
+        use_https: appConfig.webServer.use_https,
+        auth_page_path: appConfig.webServer.auth_page_path,
+        certpath: appConfig.webServer.certpath,
+        keypath: appConfig.webServer.keypath,
+        passphrase: appConfig.webServer.passphrase
+    });
 
     await fs.writeFile('./tokens.json', JSON.stringify(res));
     console.log('Saved token data.');
@@ -38,8 +44,8 @@ catch(error: unknown)
 // If bad data is given to our auth provider you'll get a log along the lines of "no valid token avaiable; trying to refresh.." etc.
 const authProvider: RefreshingAuthProvider = new RefreshingAuthProvider(
     {
-        'clientId': appConfig.twitch.client_id,
-        'clientSecret': appConfig.twitch.client_secret,
+        'clientId': appConfig.twitch.client_id as string,
+        'clientSecret': appConfig.twitch.client_secret as string,
     }
 );
 
@@ -51,9 +57,15 @@ authProvider.onRefresh(async function(_userId, newTokenData)
 
 // This should only run if saving the token is turned off (appSettings.SAVE_TOKEN)
 if(!tokenData)
-    tokenData = await authenticateTwitch(appConfig.twitch, appConfig.webServer);
+    tokenData = await authenticateTwitch(appConfig.twitch, {
+        use_https: appConfig.webServer.use_https,
+        auth_page_path: appConfig.webServer.auth_page_path,
+        certpath: appConfig.webServer.certpath,
+        keypath: appConfig.webServer.keypath,
+        passphrase: appConfig.webServer.passphrase
+    });
 
-bridge.twitch.botUserId = (await getTokenInfo(tokenData.accessToken, appConfig.twitch.client_id)).userId;
+bridge.twitch.botUserId = (await getTokenInfo(tokenData.accessToken, appConfig.twitch.client_id as string)).userId;
 authProvider.addUser(bridge.twitch.botUserId, tokenData! as never, ['chat']);
 
 // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
