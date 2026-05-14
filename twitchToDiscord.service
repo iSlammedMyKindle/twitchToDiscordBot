@@ -1,0 +1,15 @@
+[Unit]
+Description=Twitch to Discord Bridge Service
+After=network.target
+Wants=twitchListenerCore.service
+After=twitchListenerCore.service
+
+[Service]
+Type=notify
+WorkingDirectory=/path/to/twitchToDiscord
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
