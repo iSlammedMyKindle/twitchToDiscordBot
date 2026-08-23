@@ -37,7 +37,7 @@ To prepend an emoji to the sent message, follow these steps:
 2. Upload your emoji by clicking the **Upload Emoji** button
 3. After upload, copy the emoji name and ID and paste it in the configuration:
 
-```json
+```jsonc
 "discord":{
     // Rest of the file
     "EMOJI_NAME": "your_emoji_name_here",
@@ -68,7 +68,7 @@ The default header for all outgoing twitch messages is `d`, unless specified. If
     // ALL bots defined need at least an empty string or the app won't work.
     "BOT_WHITELIST": {
       // Assigns this bot to "m"
-      "9999999999999999": "m"
+      "9999999999999999": "m",
 
       // Assigns this bot to "d"
       "0000000000000000": ""
