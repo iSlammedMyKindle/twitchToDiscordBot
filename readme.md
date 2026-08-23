@@ -47,7 +47,6 @@ To prepend an emoji to the sent message, follow these steps:
 
 If not provided, an emoji won't be displayed, just the username + message.
 
-
 ## Setting up a Discord channel
 
 On your Discord server, the channel that will reflects Twitch chat needs to have permissions disabled on it. Twitch is directly based on an IRC standard, which means things like threads are not going to be supported.
@@ -57,6 +56,32 @@ Create the channel, and then copy it's Discord ID (enable developer settings in 
 ## `T2D_DEV_SAVE_TOKEN`
 
 You'll need this setting toggled to true if you are just developing the bot. Twitch only offers up to 50 tokens at a given time, so this will prevent you from maxing that out quickly!
+
+## `T2D_BOT_WHITELIST`
+
+This value allows selective bots to chat in twitch! The key will be the `applicationId` (the bot ID), while the value will be a header.
+
+The default header for all outgoing twitch messages is `d`, unless specified. If you assign your own letter, that bot will be clearly marked in twitch. E.g:
+
+```jsonc
+  "discord": {
+    // ALL bots defined need at least an empty string or the app won't work.
+    "BOT_WHITELIST": {
+      // Assigns this bot to "m"
+      "9999999999999999": "m"
+
+      // Assigns this bot to "d"
+      "0000000000000000": ""
+    }
+  },
+```
+
+In the outgoing message:
+
+```
+[m][myfirstbot~123] Hi! I'm a bot!
+[d][mysecondbot~123] Hi! I'm another bot!
+```
 
 ## Launching the bot
 
@@ -74,20 +99,20 @@ This will send these events directly to discord without creating another bot tha
 
 The following flags are accepted for the config or environment variables:
 
-* `T2D_LC_URL` - the address listenerCore is listening to.
-* `T2D_LC_SCOPE` - (array) the events to start listening to. Event types: `["redeem", "cheer", "follow", "sub"]`
+- `T2D_LC_URL` - the address listenerCore is listening to.
+- `T2D_LC_SCOPE` - (array) the events to start listening to. Event types: `["redeem", "cheer", "follow", "sub"]`
 
 ## Launching with environment variables
 
 Environment variables will have the same syntax for the most part just like in the `config.json`. However, there are some main differences when applying the https env's - which are listed below:
 
-* `T2D_HTTPS_ENABLED` - Turn https on; use this in production!
-* `T2D_HTTPS_KEYPATH` - Where your .key is for the ssl certificate
-* `T2D_HTTPS_CERTPATH` - The path for the .crt
-* `T2D_HTTPS_PASSPHRASE` - The passphrase for the .crt
-* `T2D_AUTH_PAGE_PATH` - The direct path to the page you would like to show once you have authed. Keep null/undefined for default page.
+- `T2D_HTTPS_ENABLED` - Turn https on; use this in production!
+- `T2D_HTTPS_KEYPATH` - Where your .key is for the ssl certificate
+- `T2D_HTTPS_CERTPATH` - The path for the .crt
+- `T2D_HTTPS_PASSPHRASE` - The passphrase for the .crt
+- `T2D_AUTH_PAGE_PATH` - The direct path to the page you would like to show once you have authed. Keep null/undefined for default page.
 
 # Credits
 
-* @iSlammedMyKindle - Codebase owner
-* @AceLikesGhosts - converting the project to TS, replies, converting the project *again*, but instead from tmi.js to twurple
+- @iSlammedMyKindle - Codebase owner
+- @AceLikesGhosts - converting the project to TS, replies, converting the project _again_, but instead from tmi.js to twurple
