@@ -2,12 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "lib": [
-      "ES2021.String",
-      "es6",
-      "es2017",
-      "esnext.asynciterable"
-    ],
+    "lib": ["ES2021.String", "es6", "es2017", "esnext.asynciterable"],
     "sourceMap": true,
     "outDir": "./dist",
     "skipDefaultLibCheck": true,
@@ -28,14 +23,12 @@
     "skipLibCheck": true,
     "baseUrl": "."
   },
-  "exclude": [
-    "node_modules"
-  ],
+  "exclude": ["node_modules"],
   "include": [
     "./src/**/*.tsx",
     "./src/**/*.ts",
     "./src/**/*.js",
-    "./src/**/*.mjs",
+    "./src/**/*.mjs"
   ],
   "ts-node": {
     "files": true

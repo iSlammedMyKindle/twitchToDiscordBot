@@ -1,13 +1,13 @@
-import bridge, { genericPromiseError, manageMsgCache } from './bridge.js';
-import { AuthResponse, authenticateTwitch } from 'kindle-twitch-oauth';
-import { conjoinedMsg, twitchMsg } from '../messageObjects.js';
-import { Message } from 'discord.js';
-import { promises as fs } from 'fs';
-import { RefreshingAuthProvider, getTokenInfo } from '@twurple/auth';
-import { ClearMsg, ChatMessage, ChatClient } from '@twurple/chat';
-import { ApiClient } from '@twurple/api';
-import { node } from '../linkedList.js';
-import appConfig from '../appConfig.js';
+import bridge, { genericPromiseError, manageMsgCache } from "./bridge.js";
+import { AuthResponse, authenticateTwitch } from "kindle-twitch-oauth";
+import { conjoinedMsg, twitchMsg } from "../messageObjects.js";
+import { Message } from "discord.js";
+import { promises as fs } from "fs";
+import { RefreshingAuthProvider, getTokenInfo } from "@twurple/auth";
+import { ClearMsg, ChatMessage, ChatClient } from "@twurple/chat";
+import { ApiClient } from "@twurple/api";
+import { node } from "../linkedList.js";
+import appConfig from "../appConfig.js";
 
 // Twitch init
 // ///////////
@@ -16,79 +16,88 @@ import appConfig from '../appConfig.js';
 // Login to twitch using the access token found in our oauth process
 let tokenData: AuthResponse;
 
-try 
-{
-    if(appConfig.appSettings.save_token) 
-    {
-        tokenData = JSON.parse(await fs.readFile('./tokens.json', 'utf-8'));
-        console.log('Using saved token data found in ./tokens.json');
-    }
-}
-catch(error: unknown) 
-{
-    /* The only way for an error to be thrown here is if we try to read tokens.json and it 
+try {
+  if (appConfig.appSettings.save_token) {
+    tokenData = JSON.parse(await fs.readFile("./tokens.json", "utf-8"));
+    console.log("Using saved token data found in ./tokens.json");
+  }
+} catch (error: unknown) {
+  /* The only way for an error to be thrown here is if we try to read tokens.json and it 
     doesn't exist, which will only happen if we have
     save_token enabled, so it's safe to just write to tokens.json */
-    const res: AuthResponse = await authenticateTwitch(appConfig.twitch, {
-        use_https: appConfig.webServer.use_https,
-        auth_page_path: appConfig.webServer.auth_page_path,
-        certpath: appConfig.webServer.certpath,
-        keypath: appConfig.webServer.keypath,
-        passphrase: appConfig.webServer.passphrase
-    });
+  const res: AuthResponse = await authenticateTwitch(appConfig.twitch, {
+    use_https: appConfig.webServer.use_https,
+    auth_page_path: appConfig.webServer.auth_page_path,
+    certpath: appConfig.webServer.certpath,
+    keypath: appConfig.webServer.keypath,
+    passphrase: appConfig.webServer.passphrase,
+  });
 
-    await fs.writeFile('./tokens.json', JSON.stringify(res));
-    console.log('Saved token data.');
+  await fs.writeFile("./tokens.json", JSON.stringify(res));
+  console.log("Saved token data.");
 }
 
 // If bad data is given to our auth provider you'll get a log along the lines of "no valid token avaiable; trying to refresh.." etc.
-const authProvider: RefreshingAuthProvider = new RefreshingAuthProvider(
-    {
-        'clientId': appConfig.twitch.client_id as string,
-        'clientSecret': appConfig.twitch.client_secret as string,
-    }
-);
+const authProvider: RefreshingAuthProvider = new RefreshingAuthProvider({
+  clientId: appConfig.twitch.client_id as string,
+  clientSecret: appConfig.twitch.client_secret as string,
+});
 
-authProvider.onRefresh(async function(_userId, newTokenData) 
-{
-    // console.warn('yes', _userId, newTokenData);
-    return appConfig.appSettings.save_token ? await fs.writeFile('./tokens.json', JSON.stringify(newTokenData, null, 4), 'utf-8') : null;
+authProvider.onRefresh(async function (_userId, newTokenData) {
+  // console.warn('yes', _userId, newTokenData);
+  return appConfig.appSettings.save_token
+    ? await fs.writeFile(
+        "./tokens.json",
+        JSON.stringify(newTokenData, null, 4),
+        "utf-8",
+      )
+    : null;
 });
 
 // This should only run if saving the token is turned off (appSettings.SAVE_TOKEN)
-if(!tokenData)
-    tokenData = await authenticateTwitch(appConfig.twitch, {
-        use_https: appConfig.webServer.use_https,
-        auth_page_path: appConfig.webServer.auth_page_path,
-        certpath: appConfig.webServer.certpath,
-        keypath: appConfig.webServer.keypath,
-        passphrase: appConfig.webServer.passphrase
-    });
+if (!tokenData)
+  tokenData = await authenticateTwitch(appConfig.twitch, {
+    use_https: appConfig.webServer.use_https,
+    auth_page_path: appConfig.webServer.auth_page_path,
+    certpath: appConfig.webServer.certpath,
+    keypath: appConfig.webServer.keypath,
+    passphrase: appConfig.webServer.passphrase,
+  });
 
-bridge.twitch.botUserId = (await getTokenInfo(tokenData.accessToken, appConfig.twitch.client_id as string)).userId;
-authProvider.addUser(bridge.twitch.botUserId, tokenData! as never, ['chat']);
+bridge.twitch.botUserId = (
+  await getTokenInfo(
+    tokenData.accessToken,
+    appConfig.twitch.client_id as string,
+  )
+).userId;
+authProvider.addUser(bridge.twitch.botUserId, tokenData! as never, ["chat"]);
 
 // TODO: if we need to scale this to *much* more than just one twitch channel, this won't be usable, there will need to be another approach to record the ID's of the bot user
-bridge.twitch.authChatClient = new ChatClient({ authProvider, channels: [appConfig.twitch.channels[0]] });
-bridge.twitch.anonChatClient = new ChatClient({ authProvider: undefined, channels: [appConfig.twitch.channels[0]] });
+bridge.twitch.authChatClient = new ChatClient({
+  authProvider,
+  channels: [appConfig.twitch.channels[0]],
+});
+bridge.twitch.anonChatClient = new ChatClient({
+  authProvider: undefined,
+  channels: [appConfig.twitch.channels[0]],
+});
 bridge.twitch.apiChatClient = new ApiClient({ authProvider });
 
 bridge.twitch.authChatClient.connect();
 bridge.twitch.anonChatClient.connect();
 
 // Using anonChatClient so that we recieve the messages we send, yknow.
-bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: string, userState: ChatMessage) => 
-{
-    if(!bridge.targetDiscordChannel)
-        throw new Error('Cannot find Discord channel.');
+bridge.twitch.anonChatClient.onMessage(
+  (channel: string, user: string, message: string, userState: ChatMessage) => {
+    if (!bridge.targetDiscordChannel)
+      throw new Error("Cannot find Discord channel.");
 
-    const newMessage: string = message.replace(/@([A-Za-z])\w+ /, '');
+    const newMessage: string = message.replace(/@([A-Za-z])\w+ /, "");
 
     // If the person who sent the message's name isn't equal to the bot's name
     // then send the Discord message.
-    if(!(appConfig.twitch.account_username === user.toLowerCase()))
-    {
-        /**
+    if (!(appConfig.twitch.account_username === user.toLowerCase())) {
+      /**
             'reply-parent-display-name': 'testingaccount__',
             'reply-parent-msg-body': 'test',
             'reply-parent-msg-id': 'f279b175-7100-4486-bb96-c188ea102bbd',
@@ -99,74 +108,92 @@ bridge.twitch.anonChatClient.onMessage((channel: string, user: string, message: 
             is a reply.
         */
 
-        // Get the (twitch) emoji strings from the config and display emoji in the message if both properties are set
-        const emojiString = appConfig.discord.emoji_name && appConfig.discord.emoji_id ? `<:${appConfig.discord.emoji_name}:${appConfig.discord.emoji_id}>` : '';
+      // Get the (twitch) emoji strings from the config and display emoji in the message if both properties are set
+      const emojiString =
+        appConfig.discord.emoji_name && appConfig.discord.emoji_id
+          ? `<:${appConfig.discord.emoji_name}:${appConfig.discord.emoji_id}>`
+          : "";
 
-        // if there is a reply parent display name
-        // we know it's a reply.
-        if(userState.tags.get('reply-parent-display-name'))
-        {
-            // get the linked list node from the Twitch ID that was replied to
-            const fetchedNode: node<conjoinedMsg> = bridge.discordTwitchCacheMap.get(userState.tags.get('reply-parent-msg-id'));
+      // if there is a reply parent display name
+      // we know it's a reply.
+      if (userState.tags.get("reply-parent-display-name")) {
+        // get the linked list node from the Twitch ID that was replied to
+        const fetchedNode: node<conjoinedMsg> =
+          bridge.discordTwitchCacheMap.get(
+            userState.tags.get("reply-parent-msg-id"),
+          );
 
-            if(!fetchedNode)
-                return;
+        if (!fetchedNode) return;
 
-            try
-            {
-                fetchedNode.data?.message?.reply(`${emojiString} **${ user }**: ${ newMessage }`);
-                return;
-            }
-            catch(err: unknown)
-            {
-                console.error(`Failed to reply to Discord message (ID %d)\nError: ${ err }`, fetchedNode.data?.message?.id);
-            }
+        try {
+          fetchedNode.data?.message?.reply(
+            `${emojiString} **${user}**: ${newMessage}`,
+          );
+          return;
+        } catch (err: unknown) {
+          console.error(
+            `Failed to reply to Discord message (ID %d)\nError: ${err}`,
+            fetchedNode.data?.message?.id,
+          );
         }
+      }
 
-        // We should (hopefully) not get stuck in a loop here due to our
-        // checks in discord.ts
-        bridge.targetDiscordChannel.send(`${emojiString} **${ user }**: ${ message }`).then((discordMessage: Message<boolean>) =>
-        {
-            // Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
-            // Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
-            const twitchMessage = new twitchMsg(message, false, userState, channel);
-            const listNode = bridge.messageLinkedListInterface.addNode(new conjoinedMsg(discordMessage, [twitchMessage]));
+      // We should (hopefully) not get stuck in a loop here due to our
+      // checks in discord.ts
+      bridge.targetDiscordChannel
+        .send(`${emojiString} **${user}**: ${message}`)
+        .then((discordMessage: Message<boolean>) => {
+          // Discord actually stores message object after the promise is fullfilled (unlike twitch), so we can just create this object on the fly
+          // Map both of these results for later querying. Eventually these will go away as we're deleting messages we don't care about anymore.
+          const twitchMessage = new twitchMsg(
+            message,
+            false,
+            userState,
+            channel,
+          );
+          const listNode = bridge.messageLinkedListInterface.addNode(
+            new conjoinedMsg(discordMessage, [twitchMessage]),
+          );
 
-            bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
-            bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, listNode);
-            bridge.discordTwitchCacheMap.set(discordMessage, listNode);
-            bridge.discordTwitchCacheMap.set(discordMessage.id, listNode);
+          bridge.discordTwitchCacheMap.set(twitchMessage, listNode);
+          bridge.discordTwitchCacheMap.set(
+            twitchMessage.userState.id,
+            listNode,
+          );
+          bridge.discordTwitchCacheMap.set(discordMessage, listNode);
+          bridge.discordTwitchCacheMap.set(discordMessage.id, listNode);
 
-            // Count upwards and delete the oldest message if need be
-            manageMsgCache();
+          // Count upwards and delete the oldest message if need be
+          manageMsgCache();
         }, genericPromiseError);
     }
 
-    if(bridge.twitchMessageSearchCache[newMessage])
-    {
-        const existingNode = bridge.twitchMessageSearchCache[newMessage],
-            twitchMessage = new twitchMsg(message, true, userState, channel);
+    if (bridge.twitchMessageSearchCache[newMessage]) {
+      const existingNode = bridge.twitchMessageSearchCache[newMessage],
+        twitchMessage = new twitchMsg(message, true, userState, channel);
 
-        existingNode.data?.twitchArray.push(twitchMessage);
-        bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
-        bridge.discordTwitchCacheMap.set(twitchMessage.userState.id, existingNode);
+      existingNode.data?.twitchArray.push(twitchMessage);
+      bridge.discordTwitchCacheMap.set(twitchMessage, existingNode);
+      bridge.discordTwitchCacheMap.set(
+        twitchMessage.userState.id,
+        existingNode,
+      );
 
-        // Remove this from the cache since we found it
-        delete bridge.twitchMessageSearchCache[message];
+      // Remove this from the cache since we found it
+      delete bridge.twitchMessageSearchCache[message];
     }
-});
-
+  },
+);
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-bridge.twitch.anonChatClient?.onMessageRemove((_channel: string, id: string, _message: ClearMsg) =>
-{
+bridge.twitch.anonChatClient?.onMessageRemove(
+  (_channel: string, id: string, _message: ClearMsg) => {
     const linkedNode: node<conjoinedMsg> = bridge.discordTwitchCacheMap.get(id);
 
-    if(!linkedNode)
-        return;
+    if (!linkedNode) return;
 
-    if(linkedNode.data?.message?.deletable)
-        linkedNode.data.message.delete();
+    if (linkedNode.data?.message?.deletable) linkedNode.data.message.delete();
 
     manageMsgCache(linkedNode);
-});
+  },
+);

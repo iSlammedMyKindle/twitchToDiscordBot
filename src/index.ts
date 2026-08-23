@@ -1,3 +1,3 @@
-import './clients/twitch.js';
-import './clients/discord.js';
-import './clients/listenerCore.js';
+import "./clients/twitch.js";
+import "./clients/discord.js";
+import "./clients/listenerCore.js";
