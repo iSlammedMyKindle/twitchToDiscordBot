@@ -2,6 +2,7 @@
   "scripts": {
     "build": "npx tsc && cp -r ./public/ ./dist/",
     "watch": "npx nodemon ./src/twitchToDiscord.ts",
+    "format": "npx prettier -cw .",
     "start": "node ./dist/index.js"
   },
   "dependencies": {
